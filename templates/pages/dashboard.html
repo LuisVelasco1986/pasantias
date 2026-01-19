@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block navbar %}
+{% include "components/navbar.html" %}
+{% endblock navbar %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row" style="min-height: calc(100vh - 83px);">
+        {% include "components/sidebar.html" %}
+
+        <!-- Contenido principal -->
+        <main class="col-md-9 col-lg-10 p-4 dashboardContent">
+            {% block dashboard_content %}
+            <!-- Aquí va el contenido específico de cada sección -->
+            {% endblock dashboard_content %}
+        </main>
+    </div>
+</div>
+{% endblock content %}

@@ -1,0 +1,16 @@
+{% for empleado in empleados %}
+<tr class="clickable-row" data-href="{% if empleado.id == request.user.persona.id %}{% url 'modelNewApp:perfil' %}{% else %}{% url 'modelNewApp:empleados_detalles' empleado.id %}{% endif %}">
+    <td>{{ empleado.nombres }} {{ empleado.apellidos }}</td>
+    <td>{{ empleado.fecha_registro|date:"d/m/Y" }}</td>
+    <td>{% if empleado.codigo_p00%}{{ empleado.codigo_p00 }}{% else %}-{% endif %}</td>
+    <td>
+        <div class="{% if empleado.activo %}personaActiva{% else %}personaInactiva{% endif %}">{% if empleado.activo %}Activo{% else %}Inactivo{% endif %}
+        </div>
+    </td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="4">No se encontraron resultados</td>
+</tr>
+{% endfor %}
+

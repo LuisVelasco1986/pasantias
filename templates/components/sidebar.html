@@ -1,0 +1,29 @@
+{% load static %}
+<!-- Sidebar -->
+<nav class="sidebar col-md-3 col-lg-2 text-white sidebar-col">
+    <ul class="nav flex-column">
+        <li class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"><a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}text-white{% else %}text-black{% endif %} d-flex align-items-center pt-4 pb-4" href="{% url 'modelNewApp:dashboard' %}">
+            <svg class="dashboardIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="9"></rect>
+              <rect x="14" y="3" width="7" height="5"></rect>
+              <rect x="14" y="12" width="7" height="9"></rect>
+              <rect x="3" y="16" width="7" height="5"></rect>
+            </svg>
+            <span class="ms-2 span-sidebar">Dashboard</span></a>
+        </li>
+        <li class="nav-item {% if '/dashboard/personas/' in request.path %}active{% endif %}"><a class="nav-link {% if '/dashboard/personas/' in request.path %}text-white{% else %}text-black{% endif %} d-flex align-items-center pt-4 pb-4" href="{% url 'modelNewApp:empleados' %}"><img class="dashboardIcon" src="{% if '/dashboard/personas/' in request.path %}{% static 'images/users icon white.svg' %}{% else %}{% static 'images/users icon.svg' %}{% endif %}" alt=""><span class="ms-2 span-sidebar">Personas</span></a></li>
+        <li class="nav-item {% if '/dashboard/estadisticos/' in request.path %}active{% endif %}"><a class="nav-link {% if '/dashboard/estadisticos/' in request.path %}text-white{% else %}text-black{% endif %} d-flex align-items-center pt-4 pb-4" href="{% url 'modelNewApp:estadisticos' %}"><img class="dashboardIcon" src="{% if '/dashboard/estadisticos/' in request.path %}{% static 'images/dashboard icon white.svg' %}{% else %}{% static 'images/dashboard icon.svg' %}{% endif %}" alt=""><span class="ms-2 span-sidebar">Estadísticos</span></a></li>
+        <li class="nav-item {% if '/dashboard/reportes/' in request.path %}active{% endif %}"><a class="nav-link {% if '/dashboard/reportes/' in request.path %}text-white{% else %}text-black{% endif %} d-flex align-items-center pt-4 pb-4" href="{% url 'modelNewApp:reportes' %}">
+            <svg class="dashboardIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+            </svg>
+            <span class="ms-2 span-sidebar">Reportes</span></a>
+        </li>
+        <li class="nav-item {% if '/dashboard/perfil/' in request.path %}active{% endif %}"><a class="nav-link {% if '/dashboard/perfil/' in request.path %}text-white{% else %}text-black{% endif %} d-flex align-items-center pt-4 pb-4" href="{% url 'modelNewApp:perfil' %}"><img class="dashboardIcon" src="{% if '/dashboard/perfil/' in request.path %}{% static 'images/perfil icon white.svg' %}{% else %}{% static 'images/perfil icon.svg' %}{% endif %}" alt=""><span class="ms-2 span-sidebar">Perfil</span></a></li>
+    </ul>
+</nav>

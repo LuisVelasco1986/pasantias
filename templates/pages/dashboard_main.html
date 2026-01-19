@@ -1,0 +1,87 @@
+{% extends "pages/dashboard.html" %}
+{% load static %}
+
+{% block dashboard_content %}
+
+<div class="sectionTitle">Dashboard</div>
+<div class="row g-4 mt-2">
+
+    <div class="col-3">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <h6 class="text-muted">Personas dentro</h6>
+                <p class="fs-2 fw-bold mb-0">{{dentro.count}}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-3">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <h6 class="text-muted">Ingresos hoy</h6>
+                <p class="fs-2 fw-bold mb-0">{{ingresos.count}}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-3">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <h6 class="text-muted">Salidas hoy</h6>
+                <p class="fs-2 fw-bold mb-0">{{salidas.count}}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-3">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <h6 class="text-muted">Total personas</h6>
+                <p class="fs-2 fw-bold mb-0">{{total}}</p>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="mt-4 sectionTitle">Personas dentro</div>
+<div class="px-3">
+    <table class="table table-hover">
+        <thead>
+        <tr>
+            <th>
+                Nombre y apellido
+            </th>
+            <th>
+                Código P00
+            </th>
+            <th>
+                Hora de entrada
+            </th>
+        </tr>
+        </thead>
+        <tbody id="personas-table">
+        {% for empleado in dentro %}
+        <tr class="clickable-row" data-href="{% url 'modelNewApp:empleados_detalles' empleado.id_persona.id %}">
+            <td>{{ empleado.id_persona.nombres }} {{ empleado.id_persona.apellidos }}</td>
+            <td>{% if empleado.id_persona.codigo_p00 %}{{ empleado.id_persona.codigo_p00 }}{% else %}-{% endif %}</td>
+            <td>{{ empleado.fecha_hora|date:"d/m/y, h:i A" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4">No hay personas dentro del edificio en éste momento.</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="mt-4 sectionTitle">Ingresos por día (Últimos 7 días)</div>
+
+<div class="px-3" style="max-width: 1000px; height: 500px;margin: auto;">
+    <canvas id="ingresosChart"></canvas>
+</div>
+
+<!-- Datos para la gráfica -->
+{{ ingresos_por_dia|json_script:"ingresos-data" }}
+
+
+{% endblock dashboard_content %}

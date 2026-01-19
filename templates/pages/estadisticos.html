@@ -1,0 +1,230 @@
+{% extends "pages/dashboard.html" %}
+{% load static %}
+
+{% block dashboard_content %}
+
+<div class="sectionTitle mb-4">Estadísticos</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 mb-4">
+            <div class="col-md-3">
+                <label class="form-label">Desde</label>
+                <input type="date" name="desde" class="form-control" value="{{ request.GET.desde }}">
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">Hasta</label>
+                <input type="date" name="hasta" class="form-control" value="{{ request.GET.hasta }}">
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">Tipo</label>
+                <select name="tipo" class="form-select">
+                    <option value="">Todos</option>
+                    {% for tipo in tipos %}
+                    <option value="{{ tipo.nombre_tipo }}"
+                        {% if request.GET.tipo == tipo.nombre_tipo %}selected{% endif %}
+                    >
+                        {{ tipo.nombre_tipo }}
+                    </option>
+                    {% endfor %}
+                </select>
+
+            </div>
+
+            <div class="col-md-3 d-grid align-items-end">
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary w-100">
+                        Aplicar filtros
+                    </button>
+
+                    <a href="{% url 'modelNewApp:estadisticos' %}" class="btn btn-outline-secondary w-100">
+                        Borrar filtros
+                    </a>
+                </div>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+<!-- =========================
+    SECCIÓN 2: KPIs
+========================= -->
+<div class="d-flex justify-content-between g-4 mb-4">
+    <div class="card flex-fill me-2">
+        <div class="card-body text-center">
+            <h6 class="text-muted">Total ingresos<br><small class="invisible">(días con actividad)</small></h6>
+            <p class="fs-2 fw-bold mb-0">{{ total_ingresos }}</p>
+        </div>
+    </div>
+
+    <div class="card flex-fill me-2">
+        <div class="card-body text-center">
+            <h6 class="text-muted">Promedio diario<br><small>(días con actividad)</small></h6>
+            <p class="fs-2 fw-bold mb-0">{{ promedio_dias_activos }}</p>
+        </div>
+    </div>
+
+    <div class="card flex-fill me-2">
+        <div class="card-body text-center">
+            <h6 class="text-muted">Promedio diario<br><small>(período completo)</small></h6>
+            <p class="fs-2 fw-bold mb-0">{{ promedio_periodo }}</p>
+        </div>
+    </div>
+
+    <div class="card flex-fill me-2">
+        <div class="card-body text-center">
+            <h6 class="text-muted">Día con más ingresos<br><small class="invisible">(días con actividad)</small></h6>
+            <p class="fs-2 fw-bold mb-0">
+                {{ dia_mas_ingresos }}{% if cantidad_mas_ingresos != "0" %} ({{ cantidad_mas_ingresos }}){% endif %}
+            </p>
+        </div>
+    </div>
+
+    <div class="card flex-fill">
+        <div class="card-body text-center">
+            <h6 class="text-muted">Hora pico<br><small class="invisible">(días con actividad)</small></h6>
+            <p class="fs-2 fw-bold mb-0">
+                {{ hora_pico }}{% if cantidad_hora_pico != '0' %} ({{ cantidad_hora_pico }}){% endif %}
+            </p>
+        </div>
+    </div>
+</div>
+
+
+<!-- =========================
+    SECCIÓN 3: GRÁFICO PRINCIPAL
+========================= -->
+
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="mb-3">Ingresos por día
+        {% if fecha_inicio and fecha_fin %}
+            ({{ fecha_inicio|date:"d/m/Y" }} - {{ fecha_fin|date:"d/m/Y" }})
+        {% endif %}
+        </h5>
+        <div class="px-3" style="max-width: 1000px; height: 350px;margin: auto;">
+            <canvas id="ingresosPorPeriodoChart"></canvas>
+        </div>
+    </div>
+</div>
+
+
+{{ ingresos_por_periodo|json_script:"ingresos-periodo-data" }}
+<!-- =========================
+    SECCIÓN 4: GRÁFICOS SECUNDARIOS
+========================= -->
+<div class="row g-4 mb-4">
+
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="mb-3">Ingresos por hora</h5>
+                <div style="height: 300px;">
+                    <canvas id="ingresosPorHoraChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{ ingresos_por_hora|json_script:"ingresos-por-hora-data" }}
+
+
+
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="mb-3">Ingresos por tipo de persona</h5>
+                <div style="height: 300px;">
+                    <canvas id="tipoPersonaChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{ ingresos_por_tipo|json_script:"ingresos-tipo-data" }}
+
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="mb-3">Ingresos por departamento</h5>
+                <div style="height: 300px;">
+                    <canvas id="departamentoChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{ ingresos_por_departamento|json_script:"ingresos-departamento-data" }}
+
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="mb-3">Personas dentro por departamento</h5>
+                <div style="height: 300px;">
+                    <canvas id="personasDepartamentoChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{ personas_dentro_por_departamento|json_script:"personas-dep-data" }}
+
+
+
+</div>
+
+<!-- =========================
+    SECCIÓN 5: TABLA ANALÍTICA
+========================= -->
+<div class="card">
+    <div class="card-body">
+        <h5 class="mb-3">Detalle de accesos</h5>
+
+        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+            <table class="table table-hover align-middle">
+                <thead>
+                <tr>
+                    <th>Persona</th>
+                    <th>Tipo</th>
+                    <th>Total ingresos</th>
+                    <th>Último ingreso</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for r in detalle_accesos %}
+                <tr>
+                    <td>
+                        <a href="{% url 'modelNewApp:empleados_detalles' r.id_persona %}">
+                            {{ r.id_persona__nombres }} {{ r.id_persona__apellidos }}
+                        </a>
+                    </td>
+                    <td>
+                        {{ r.id_persona__id_tipo__nombre_tipo }}
+                    </td>
+                    <td class="fw-bold">
+                        {{ r.total_ingresos }}
+                    </td>
+                    <td>
+                        {{ r.ultimo_ingreso|date:"d/m/Y h:i A" }}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center text-muted">
+                        No hay registros para este período
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+
+            </table>
+        </div>
+
+    </div>
+</div>
+
+{% endblock dashboard_content %}

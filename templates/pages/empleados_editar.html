@@ -1,0 +1,217 @@
+{% extends "pages/dashboard.html" %}
+{% load static %}
+
+{% block dashboard_content %}
+
+<div class="d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center">
+        <a href="{% if persona.id == request.user.persona.id %}{% url 'modelNewApp:perfil' %}{% else %}{% url 'modelNewApp:empleados_detalles' persona.id %}{% endif %}">
+            <img class="arrow-left" src="{% static 'images/left-arrow-return.svg' %}" alt="Volver">
+        </a>
+        <div class="sectionTitle ms-2">Editar Persona</div>
+    </div>
+</div>
+
+<div class="mt-5">
+    <form class="formAgregarPersona" method="post" action="{% url 'modelNewApp:empleados_editar' persona.id %}" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="container-fluid">
+            <div class="row">
+
+                <!-- COLUMNA IZQUIERDA -->
+                <div class="col-6">
+
+                    <!-- FOTO DE PERFIL -->
+                    <div class="mb-4 p-3 border rounded">
+                        <label class="form-label labelTitle">Foto de perfil</label>
+
+                        {% if persona.foto_perfil %}
+                        <div class="mb-2">
+                            <img id="fotoPreview" src="{{ persona.foto_perfil.url }}" alt="Foto de {{ persona.nombres }}"
+                                 class="img-thumbnail" style="max-width: 150px;">
+                        </div>
+                        {% else %}
+                        <div class="mb-2">
+                            <img id="fotoPreview" src="" alt="Foto de perfil" class="img-thumbnail" style="max-width: 150px; display: none;">
+                        </div>
+                        {% endif %}
+
+                        <input
+                            type="file"
+                            name="foto_perfil"
+                            class="form-control"
+                            accept="image/*"
+                            id="fotoInput"
+                        >
+                    </div>
+
+
+                    <div class="mb-3">
+                        <label class="form-label labelTitle">Nombres</label>
+                        <input
+                            name="nombres"
+                            type="text"
+                            class="form-control"
+                            value="{% if data %}{{ data.nombres }}{% else %}{{ persona.nombres }}{% endif %}"
+                            placeholder="Ingrese los nombres..."
+                            required
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label labelTitle">Apellidos</label>
+                        <input
+                            name="apellidos"
+                            type="text"
+                            class="form-control"
+                            value="{% if data %}{{ data.apellidos }}{% else %}{{ persona.apellidos }}{% endif %}"
+                            placeholder="Ingrese los apellidos..."
+                            required
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label labelTitle">Cédula</label>
+                        <input
+                            name="cedula"
+                            type="text"
+                            class="form-control"
+                            value="{% if data %}{{ data.cedula }}{% else %}{{ persona.cedula }}{% endif %}"
+                            placeholder="Ingrese el número de cédula..."
+                            required
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label labelTitle">Código P00</label>
+                        <input
+                            name="codigo"
+                            type="text"
+                            class="form-control"
+                            value="{% if data %}{{ data.codigo }}{% else %}{{ persona.codigo_p00|default:'' }}{% endif %}"
+                            placeholder="Ingrese el código P00..."
+                            required
+                        >
+                    </div>
+
+                    <!-- TIPO DE PERSONA -->
+                    <div class="mb-3">
+                        <label class="form-label labelTitle">Tipo de persona</label>
+
+                        {% for tipo in tipos %}
+                        <div class="form-check tipoPersonaRadio">
+                            <input
+                                class="form-check-input"
+                                type="radio"
+                                name="tipo_persona"
+                                value="{{ tipo.id }}"
+                                id="tipo_{{ tipo.id }}"
+                                {% if data %}
+                                    {% if data.tipo_persona == tipo.id|stringformat:"s" %}checked{% endif %}
+                                {% else %}
+                                    {% if persona.id_tipo.id == tipo.id %}checked{% endif %}
+                                {% endif %}
+                                required
+                            >
+                            <label class="form-check-label" for="tipo_{{ tipo.id }}">{{ tipo.nombre_tipo }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- SEXO -->
+                    <div class="mb-3">
+                        <label class="form-label labelTitle">Sexo</label>
+                        <select name="sexo" class="form-select" required>
+                            <option value="">Seleccione sexo</option>
+                            <option value="M" {% if data and data.sexo == "M" or persona.sexo == "M" %}selected{% endif %}>Masculino</option>
+                            <option value="F" {% if data and data.sexo == "F" or persona.sexo == "F" %}selected{% endif %}>Femenino</option>
+                            <option value="O" {% if data and data.sexo == "O" or persona.sexo == "O" %}selected{% endif %}>Otro</option>
+                        </select>
+                    </div>
+
+                    <!-- ADMIN -->
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input
+                                name="administrador"
+                                class="form-check-input"
+                                type="checkbox"
+                                value="checked"
+                                id="admin"
+                                {% if data and data.administrador == "checked" or persona.empleado %}checked{% endif %}
+                            >
+                            <label class="form-check-label" for="admin">El empleado es un administrador</label>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- COLUMNA DERECHA -->
+                <div class="col-6">
+
+                    <!-- EMAIL -->
+                    <div class="mb-3">
+                        <label class="form-label labelTitle">Correo electrónico</label>
+                        <input
+                            name="email"
+                            type="email"
+                            class="form-control"
+                            value="{% if data %}{{data.email}}{% else %}{{persona.empleado.email}}{% endif %}"
+                            placeholder="Ingrese correo electrónico..."
+                            id="email"
+                            required
+                            {% if data %}{% if data.administrador %}{% else %}disabled{% endif %}{% else %}{% if persona.empleado %}{% else %}disabled{% endif %}{% endif %}
+                        >
+                        <small class="text-muted">
+                            La contraseña será generada automáticamente si es nueva
+                        </small>
+                    </div>
+
+                    <!-- ROLES -->
+                    <div class="mb-3 p-3 border rounded">
+                        <label class="form-label labelTitle">Roles</label>
+
+                        {% for rol in roles %}
+                        <div class="form-check">
+                            <input
+                                class="form-check-input role-checkbox"
+                                type="checkbox"
+                                name="roles"
+                                value="{{ rol.id }}"
+                                id="rol_{{ rol.id }}"
+                                {% if rol.id in roles_persona %}checked{% endif %}
+                                {% if data %}{% if data.administrador %}{% else %}disabled{% endif %}{% else %}{% if persona.empleado %}{% else %}disabled{% endif %}{% endif %}
+                            >
+                            <label class="form-check-label roles" for="rol_{{ rol.id }}">{{ rol.nombre_rol }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- MENSAJES -->
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-danger mt-3 alert-auto-close">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- BOTÓN -->
+            <div class="row mt-4">
+                <div class="d-flex justify-content-end">
+                    <button class="btn btn-primary" type="submit">
+                        Editar persona
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </form>
+</div>
+
+{% endblock dashboard_content %}

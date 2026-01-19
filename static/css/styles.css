@@ -1,0 +1,293 @@
+/** {
+    margin: 0px;
+    padding: 0px;
+}
+*/
+
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+.superior {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 83px;
+    background: linear-gradient(to bottom, blue, #0032A0);
+    color: white;
+    padding: 0 100px;
+}
+
+.nav-left, .nav-right {
+    display: flex;
+    align-items: center;
+}
+
+.logoNav {
+    height: 45px;
+}
+
+.nav-right {
+    display: flex;            /* convierte a los hijos en flex items */
+    gap: 10px;                /* espacio entre el texto y el cuadrado */
+}
+
+.thumbnail-content {
+    width: 45px;
+    height: 45px;
+    background: gray;
+    flex-shrink: 0;           /* evita que se encoja si hay poco espacio */
+    border-radius: 350px;
+}
+
+
+.footer {
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-left: 150px;
+    padding-right: 150px;
+}
+
+.logoRight {
+    height: 70px;
+}
+
+.logoLeft {
+    height: 70px;
+}
+
+.indexContent {
+    width: 400px;
+}
+
+.profileMenu {
+    cursor: pointer;
+}
+
+.ingreso-salida {
+    width: 100px;
+}
+
+/* ---------------------------------------------------------------------------------------------------------------
+    Dashboard
+*/ ---------------------------------------------------------------------------------------------------------------
+
+body, html {
+    height: 100%;
+    margin: 0;
+}
+
+.sidebar {
+    background-color: rgba(0, 50, 160, 0.2);
+}
+
+.dashboardIcon {
+    height: 20px;
+    width: 20px;
+}
+
+.nav-link:hover {
+    background: linear-gradient(to bottom, blue, #0032A0);
+}
+/*.nav-link:hover {
+    background-color: rgba(255,255,255,0.2);
+}*/
+
+/* -------------- Quitar los paddings del navegador ---------------------- */
+
+.sidebar ul {
+    list-style: none;  /* quita los bullets */
+    padding: 0;        /* quita padding del ul */
+    margin: 0;         /* quita margin del ul */
+}
+
+.sidebar li {
+    padding: 0;        /* opcional: quita padding de li si Bootstrap lo aplica */
+    margin: 0;
+}
+
+.sidebar a.nav-link {
+    display: flex;          /* flex para alinear icono y texto */
+    align-items: center;    /* vertical center */
+    padding: 10px 15px;     /* controla espacio interno */
+    width: 100%;            /* ocupa todo el ancho del sidebar */
+}
+
+.sidebar a.nav-link:hover {
+    background: linear-gradient(to bottom, blue, #0032A0);
+    text-decoration: none;
+}
+
+.sidebar-col {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+/* Hover sobre el item del sidebar */
+.nav-item:hover .span-sidebar {
+    color: #ffffff;
+    transition: color 0.2s ease-in-out;
+}
+.nav-item:hover .dashboardIcon {
+    filter: brightness(0) invert(1);
+}
+
+
+
+/* ------------------  Sale de quitar los paddings del navegador ------------------- */
+
+.sidebar-col span {
+    font-size: 20px;
+}
+
+
+.active {
+    background: linear-gradient(to bottom, blue, #0032A0);
+}
+/*.active {
+    background: #0032A0;
+}*/
+
+.plusIcon{
+    height: 23px;
+    lenght: 23px;
+}
+
+.agregarEmpleadoLink {
+    text-decoration: none; /* quita subrayado */
+    color: inherit;         /* hereda el color del contenedor */
+    display: inline-block;  /* opcional, para que puedas aplicar padding/margin */
+}
+
+.agregarEmpleado {
+    display: flex;
+    gap: 10px;
+}
+
+.agregarEmpleado div {
+    color: black; /* o el color que quieras */
+}
+
+
+.sectionTitle {
+    font-size: 40px;
+    font-weight: bold;
+    margin-left: 20px;
+}
+
+.filterOptions {
+    padding-top: 27px;
+}
+
+.tipo button {
+    width: 150px;
+    border: 1px solid black;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tipo button:hover,
+.tipo button:focus {
+    border-color: black;
+}
+
+.filterOptions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.searchBar {
+    flex: 1; /* 🔑 ocupa todo el espacio disponible */
+}
+
+.filtros {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0; /* evita que se encojan */
+}
+
+table a {
+    text-decoration: none;
+}
+
+.button-light{
+    border-color: #DBDBDB !important;
+}
+
+.arrow-left {
+    width: 30px;
+    height: 30px;
+    opacity: 85%;
+}
+
+.labelTitle {
+    font-weight: bold;
+}
+
+
+.personaActiva {
+    color: #0032A0;
+}
+.personaInactiva {
+    color: #FF0000;
+}
+
+/*Estilos para la tabla, para que cada fila sea clickeable*/
+.clickable-row {
+    cursor: pointer;
+}
+
+.clickable-row:hover {
+    background-color: #f5f5f5;
+}
+
+/*Iconos para asc y desc----------------------------------------*/
+
+.sort-icon {
+    margin-left: 6px;
+    color: #adb5bd;
+    display: inline-flex;
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.sort-icon.asc {
+    color: #000;
+}
+
+.sort-icon.desc {
+    color: #000;
+    transform: rotate(180deg);
+}
+
+.sort-icon:hover {
+    color: #000;
+}
+
+
+/*  --------------------------------------------------------------------------------
+                               personas detalles
+    --------------------------------------------------------------------------------*/
+
+.perfilImagen {
+    margin-top: 20px;
+    width: 200px;
+    height: 200px;
+    border-radius: 360px;
+}
+
+.mensajeLabel {
+    opacity: 0.8;
+}
+
+/* ----------------------------------------------------------------------------------
+                                estadisticos
+ -----------------------------------------------------------------------------------*/
+ .invisible {
+    opacity: 0;
+ }

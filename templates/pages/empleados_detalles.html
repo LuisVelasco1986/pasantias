@@ -1,0 +1,278 @@
+{% extends "pages/dashboard.html" %}
+{% load static %}
+
+{% block dashboard_content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex align-items-center gap-3">
+
+        <div class="d-flex align-items-center">
+            <a class="" href="{% url 'modelNewApp:empleados' %}">
+                <img class="arrow-left" src="{% static 'images/left-arrow-return.svg' %}" alt="">
+            </a>
+            <div class="sectionTitle">{{ persona.nombres }} {{ persona.apellidos }}</div>
+        </div>
+    </div>
+
+    <div class="dropdown">
+        <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+            Acciones
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li>
+                <a class="dropdown-item" href="{% url 'modelNewApp:empleados_editar' persona.id %}">
+                    Editar
+                </a>
+            </li>
+            <li>
+                <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="{% if persona.activo %}#desactivarUsuario{% else %}#activarUsuario{% endif %}">
+                    {% if persona.activo %}Desactivar{% else %}Activar{% endif %}
+                </button>
+            </li>
+            <li>
+                <hr class="dropdown-divider">
+            </li>
+            <li>
+                <button class="dropdown-item text-danger"
+                        data-bs-toggle="modal"
+                        data-bs-target="#borrarPersona">
+                    Eliminar
+                </button>
+            </li>
+        </ul>
+    </div>
+
+
+</div>
+
+<div class="text-center mb-4">
+    {% if persona.foto_perfil %}
+    <img src="{{ persona.foto_perfil.url }}" class="perfilImagen">
+    {% else %}
+    <img src="{% static 'images/profile_empty.jpg' %}" class="perfilImagen">
+    {% endif %}
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="mb-3">Información personal</h5>
+
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Cédula:</strong> {{ persona.cedula }}</p>
+                <p><strong>Sexo:</strong>
+                    {% if persona.sexo %}
+                    {{ persona.get_sexo_display }}
+                    {% else %}-{% endif %}
+                </p>
+                <p><strong>Fecha de registro:</strong> {{ persona.fecha_registro|date:"d/m/Y" }}</p>
+            </div>
+
+            <div class="col-md-6">
+                <p><strong>Estado:</strong>
+                    <span class="{% if persona.activo %}personaActiva{% else %}personaInactiva{% endif %}">
+                        {% if persona.activo %}Activo{% else %}Inactivo{% endif %}
+                    </span>
+                </p>
+                <p><strong>Tipo de persona:</strong> {{ persona.id_tipo.nombre_tipo }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if persona.departamento %}
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="mb-3">Información organizacional</h5>
+
+        <p>
+            <strong>Departamento:</strong>
+            {% if persona.departamento %}
+            {{ persona.departamento.nombre }}
+            {% else %}
+            No asignado
+            {% endif %}
+        </p>
+
+        <p>
+            <strong>Código P00:</strong>
+            {% if persona.codigo_p00 %}{{ persona.codigo_p00 }}{% else %}-{% endif %}
+        </p>
+    </div>
+</div>
+{% endif %}
+
+{% if persona.empleado %}
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="mb-3">Información administrativa</h5>
+
+        <p><strong>Correo electrónico:</strong> {{ persona.empleado.email }}</p>
+
+        <strong>Roles:</strong>
+        <ul>
+            {% for rol in persona.empleado.roles.all %}
+            <li>{{ rol.nombre_rol }}</li>
+            {% empty %}
+            <li>Sin roles asignados</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endif %}
+
+<!-- Modal eliminar -->
+<div class="modal fade" id="borrarPersona" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+     aria-labelledby="borrarPersonaLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="borrarPersonaLabel">Eliminar usuario</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                ¿Estás seguro que quieres eliminar a {{ persona.nombres }} {{ persona.apellidos }}?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <a class="btn btn-primary" href="{% url 'modelNewApp:empleados_eliminar' persona.id %}">Aceptar</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal activar -->
+<div class="modal fade" id="activarUsuario" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+     aria-labelledby="activarUsuarioLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="activarUsuarioLabel">Activar usuario</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                ¿Estás seguro que quieres activar el usuario de {{ persona.nombres }} {{ persona.apellidos }}?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <a class="btn btn-primary" href="{% url 'modelNewApp:empleados_activar' persona.id %}">Aceptar</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal desactivar -->
+<div class="modal fade" id="desactivarUsuario" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+     aria-labelledby="desactivarUsuarioLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="desactivarUsuarioLabel">Desactivar usuario</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                ¿Estás seguro que quieres desactivar el usuario de {{ persona.nombres }} {{ persona.apellidos }}?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <a class="btn btn-primary" href="{% url 'modelNewApp:empleados_desactivar' persona.id %}">Aceptar</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+                <h5 class="mb-0">Historial de accesos</h5>
+                Mostrando resultados: {{ page_obj.start_index }} a {{ page_obj.end_index }} de {{ page_obj.paginator.count }}
+            </div>
+
+            <div class="btn-group">
+                <a href="{% url 'modelNewApp:exportar_pdf' persona.id %}" class="btn btn-danger">
+                    PDF
+                </a>
+                <a href="{% url 'modelNewApp:exportar_excel' persona.id %}" class="btn btn-success">
+                    Excel
+                </a>
+            </div>
+        </div>
+
+
+        <div class="table-responsive" style="">
+            <table class="table table-hover align-middle">
+                <thead>
+                <tr>
+                    <th>Fecha y hora</th>
+                    <th>Movimiento</th>
+                    <th>Departamento</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for acceso in page_obj %}
+                <tr>
+                    <td>{{ acceso.fecha_hora|date:"d/m/Y h:i A" }}</td>
+                    <td>
+                        {% if acceso.tipo_movimiento == "INGRESO" %}
+                        <span class="badge bg-success">
+                            <i class="bi bi-box-arrow-in-right"></i> Ingreso
+                        </span>
+
+                        {% else %}
+                        <span class="badge bg-danger">
+                            <i class="bi bi-box-arrow-left"></i> Salida
+                        </span>
+
+                        {% endif %}
+                    </td>
+                    <td>{% if acceso.departamento_destino %}{{ acceso.departamento_destino.nombre }}{% else %}—{% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="text-center text-muted">No hay registros de acceso para esta persona</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+
+            </table>
+        </div>
+
+    </div>
+</div>
+
+
+<div class="d-flex justify-content-center mt-3">
+    <nav aria-label="Historial de accesos">
+        <ul class="pagination">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">Anterior</span></li>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num >= page_obj.number|add:'-2' and num <= page_obj.number|add:'2' %}
+            <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+            {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+
+
+{% endblock dashboard_content %}

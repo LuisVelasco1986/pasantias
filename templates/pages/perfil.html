@@ -1,0 +1,99 @@
+{% extends "pages/dashboard.html" %}
+{% load static %}
+
+{% block dashboard_content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex align-items-center">
+        <div class="sectionTitle">Mi perfil</div>
+    </div>
+
+    <div>
+        <a href="{% url 'modelNewApp:empleados_editar' persona.id %}" class="btn btn-primary">
+            Editar perfil
+        </a>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-4">
+        <div class="p-3 border rounded text-center">
+            {% if persona.foto_perfil %}
+                <img src="{{ persona.foto_perfil.url }}" class="perfilImagen mb-3">
+            {% else %}
+                <img src="{% static 'images/profile_empty.jpg' %}" class="perfilImagen mb-3">
+            {% endif %}
+
+            <div class="fw-bold">{{ persona.nombres }} {{ persona.apellidos }}</div>
+            <div class="text-muted">{{ persona.id_tipo }}</div>
+
+            <span class="badge {% if persona.activo %}bg-success{% else %}bg-secondary{% endif %} mt-2">
+                {% if persona.activo %}Activo{% else %}Inactivo{% endif %}
+            </span>
+        </div>
+    </div>
+
+        <div class="col-8">
+        <div class="p-3 border rounded">
+            <h6 class="mb-3">Información personal</h6>
+
+            <div class="row mb-2">
+                <div class="col-4 labelTitle">Cédula</div>
+                <div class="col-8">{{ persona.cedula }}</div>
+            </div>
+
+            <div class="row mb-2">
+                <div class="col-4 labelTitle">Sexo</div>
+                <div class="col-8">
+                    {% if persona.sexo == 'M' %}Masculino
+                    {% elif persona.sexo == 'F' %}Femenino
+                    {% else %}Otro{% endif %}
+                </div>
+            </div>
+
+            <div class="row mb-2">
+                <div class="col-4 labelTitle">Código P00</div>
+                <div class="col-8">{{ persona.codigo_p00|default:"—" }}</div>
+            </div>
+
+            <div class="row">
+                <div class="col-4 labelTitle">Fecha de registro</div>
+                <div class="col-8">{{ persona.fecha_registro|date:"d/m/Y" }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if persona.empleado %}
+<div class="row">
+    <div class="col-12">
+        <div class="p-3 border rounded">
+            <h6 class="mb-3">Información de acceso</h6>
+
+            <div class="row mb-2">
+                <div class="col-3 labelTitle">Correo</div>
+                <div class="col-9">{{ persona.empleado.email }}</div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-3 labelTitle">Roles</div>
+                <div class="col-9">
+                    {% for rol in persona.empleado.roles.all %}
+                        <span class="badge bg-light text-dark me-1">
+                            {{ rol.nombre_rol }}
+                        </span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <a href="" class="btn btn-outline-secondary">
+                Cambiar contraseña
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+
+
+{% endblock dashboard_content %}

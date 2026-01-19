@@ -1,0 +1,207 @@
+{% extends "pages/dashboard.html" %}
+{% load static %}
+
+{% block dashboard_content %}
+
+<div class="d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center">
+        <a href="{% url 'modelNewApp:empleados' %}">
+            <img class="arrow-left" src="{% static 'images/left-arrow-return.svg' %}" alt="Volver">
+        </a>
+        <div class="sectionTitle ms-2">Agregar Persona</div>
+    </div>
+</div>
+
+<div class="mt-5">
+    <form class="formAgregarPersona" method="post" action="{% url 'modelNewApp:empleados_agregar' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="container-fluid">
+            <div class="row">
+
+                <!-- COLUMNA IZQUIERDA -->
+                <div class="col-6">
+
+                    <!-- FOTO DE PERFIL -->
+                    <div class="mb-4 p-3 border rounded">
+                        <label class="form-label labelTitle">Foto de perfil</label>
+                        <input
+                            type="file"
+                            name="foto_perfil"
+                            class="form-control"
+                            accept="image/*"
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="nombres" class="form-label labelTitle">Nombres</label>
+                        <input
+                            name="nombres"
+                            type="text"
+                            class="form-control"
+                            id="nombres"
+                            value="{{ data.nombres }}"
+                            placeholder="Ingrese los nombres..."
+                            required
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="apellidos" class="form-label labelTitle">Apellidos</label>
+                        <input
+                            name="apellidos"
+                            type="text"
+                            class="form-control"
+                            id="apellidos"
+                            value="{{ data.apellidos }}"
+                            placeholder="Ingrese los apellidos..."
+                            required
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="cedula" class="form-label labelTitle">Cédula</label>
+                        <input
+                            name="cedula"
+                            type="text"
+                            class="form-control"
+                            id="cedula"
+                            value="{{ data.cedula }}"
+                            placeholder="Ingrese el número de cédula..."
+                            required
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="codigo" class="form-label labelTitle">Código P00</label>
+                        <input
+                            name="codigo"
+                            type="text"
+                            class="form-control"
+                            id="codigo"
+                            value="{{ data.codigo }}"
+                            placeholder="Ingrese el código P00..."
+                            required
+                        >
+                    </div>
+
+                    <!-- TIPO DE PERSONA -->
+                    <div class="mb-3">
+                        <label class="form-label labelTitle">Tipo de persona</label>
+
+                        {% for tipo in tipos %}
+                        <div class="form-check tipoPersonaRadio">
+                            <input
+                                class="form-check-input"
+                                type="radio"
+                                name="tipo_persona"
+                                value="{{ tipo.id }}"
+                                id="tipo_{{ tipo.id }}"
+                                {% if tipo.id|stringformat:"s" == data.tipo_persona %}checked{% endif %}
+                                required
+                            >
+                            <label class="form-check-label" for="tipo_{{ tipo.id }}">
+                                {{ tipo.nombre_tipo }}
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- SEXO -->
+                    <div class="mb-3">
+                        <label class="form-label labelTitle">Sexo</label>
+                        <select name="sexo" class="form-select" required>
+                            <option value="">Seleccione sexo</option>
+                            <option value="M" {% if data.sexo == "M" %}selected{% endif %}>Masculino</option>
+                            <option value="F" {% if data.sexo == "F" %}selected{% endif %}>Femenino</option>
+                            <option value="O" {% if data.sexo == "O" %}selected{% endif %}>Otro</option>
+                        </select>
+                    </div>
+
+                    <!-- ADMIN -->
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input
+                                name="administrador"
+                                class="form-check-input"
+                                type="checkbox"
+                                value="checked"
+                                id="admin"
+                                {% if data.administrador == "checked" %}checked{% endif %}
+                            >
+                            <label class="form-check-label" for="admin">
+                                El empleado es un administrador
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COLUMNA DERECHA -->
+                <div class="col-6">
+
+                    <!-- EMAIL -->
+                    <div class="mb-3">
+                        <label for="email" class="form-label labelTitle">Correo electrónico</label>
+                        <input
+                            name="email"
+                            type="email"
+                            class="form-control"
+                            id="email"
+                            value="{{ data.email }}"
+                            placeholder="Ingrese correo electrónico..."
+                            readonly
+                            required {% if data.email %}{% else %}disabled{% endif %}
+                        >
+                        <small class="text-muted">
+                            La contraseña será generada automáticamente
+                        </small>
+                    </div>
+
+                    <!-- ROLES -->
+                    <div class="mb-3 p-3 border rounded">
+                        <label class="form-label labelTitle">Roles</label>
+
+                        {% for rol in roles %}
+                        <div class="form-check">
+                            <input
+                                class="form-check-input role-checkbox"
+                                type="checkbox"
+                                name="roles"
+                                value="{{ rol.id }}"
+                                id="rol_{{ rol.id }}"
+                                {% if rol.id in roles_persona %}checked{% endif %}
+                                {% if data.administrador != "checked" %}disabled{% endif %}
+                            >
+                            <label class="form-check-label roles" for="rol_{{ rol.id }}">
+                                {{ rol.nombre_rol }}
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- MENSAJES -->
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-danger mt-3 alert-auto-close">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- BOTÓN -->
+            <div class="row mt-4">
+                <div class="d-flex justify-content-end">
+                    <button class="btn btn-primary" type="submit">
+                        Agregar persona
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </form>
+</div>
+
+{% endblock dashboard_content %}

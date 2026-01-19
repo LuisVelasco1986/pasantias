@@ -1,0 +1,126 @@
+{% extends "pages/dashboard.html" %}
+{% load static %}
+{% load querystring %}
+
+{% block dashboard_content %}
+
+<div class="d-flex justify-content-between align-items-center">
+    <div class="sectionTitle">Personas</div>
+    <a class="agregarEmpleadoLink" href="{% url 'modelNewApp:empleados_agregar' %}">
+        <div class="agregarEmpleado">
+            <img class="plusIcon" src="{% static 'images/plus icon.svg' %}" alt="Agregar empleado">
+            <div class="">Agregar persona</div>
+        </div>
+    </a>
+</div>
+<div class="filterOptions">
+    <div class="searchBar">
+        <div class="input-group">
+            <span class="input-group-text bg-white">
+                <img src="{% static 'images/search icon.svg' %}" alt="Buscar" style="height:16px;">
+            </span>
+            <input
+                    type="search"
+                    name="search"
+                    id="search-input"
+                    class="form-control"
+                    placeholder="Buscar..."
+            >
+        </div>
+    </div>
+    <form method="get" class="filtros d-flex gap-2 align-items-center">
+
+    <!-- Tipo -->
+    <select name="tipo" class="form-select w-auto" onchange="this.form.submit()">
+        <option value="">Todos los tipos</option>
+        {% for tipo in tipos %}
+        <option value="{{ tipo.id }}"
+            {% if request.GET.tipo == tipo.id|stringformat:"s" %}selected{% endif %}
+        >
+            {{ tipo.nombre_tipo }}
+        </option>
+        {% endfor %}
+    </select>
+
+    <!-- Estado -->
+    <select name="estado" class="form-select w-auto" onchange="this.form.submit()">
+        <option value="">Todos los estados</option>
+        <option value="activo"
+            {% if request.GET.estado == "activo" %}selected{% endif %}
+        >
+            Activo
+        </option>
+        <option value="inactivo"
+            {% if request.GET.estado == "inactivo" %}selected{% endif %}
+        >
+            Inactivo
+        </option>
+    </select>
+
+    <!-- Limpiar -->
+    <a href="{% url 'modelNewApp:empleados' %}" class="btn btn-outline-secondary">
+        Limpiar filtros
+    </a>
+
+</form>
+
+</div>
+<table class="table table-hover mt-3">
+    <thead>
+    <tr>
+        <th>
+            Nombre y apellido
+            <a href="?{% if orden_actual == 'nombre' %}{% querystring request.GET 'orden' '-nombre' %}{% else %}{% querystring request.GET 'orden' 'nombre' %}{% endif %}"
+               class="sort-icon
+               {% if orden_actual == 'nombre' %}asc{% elif orden_actual == '-nombre' %}desc{% endif %}">
+                <svg width="14" height="14" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="18 15 12 9 6 15"></polyline>
+                </svg>
+            </a>
+        </th>
+        <th>
+            Fecha de registro
+            <a href="?{% if orden_actual == 'fecha' %}{% querystring request.GET 'orden' '-fecha' %}{% else %}{% querystring request.GET 'orden' 'fecha' %}{% endif %}"
+               class="sort-icon
+               {% if orden_actual == 'fecha' %}asc{% elif orden_actual == '-fecha' %}desc{% endif %}">
+                <svg width="14" height="14" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="18 15 12 9 6 15"></polyline>
+                </svg>
+            </a>
+        </th>
+        <th>
+            Código P00
+            <a href="?{% if orden_actual == 'codigo' %}{% querystring request.GET 'orden' '-codigo' %}{% else %}{% querystring request.GET 'orden' 'codigo' %}{% endif %}"
+               class="sort-icon
+               {% if orden_actual == 'codigo' %}asc{% elif orden_actual == '-codigo' %}desc{% endif %}">
+                <svg width="14" height="14" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="18 15 12 9 6 15"></polyline>
+                </svg>
+            </a>
+        </th>
+        <th>
+            Estado
+            <a href="?{% if orden_actual == 'estado' %}{% querystring request.GET 'orden' '-estado' %}{% else %}{% querystring request.GET 'orden' 'estado' %}{% endif %}"
+               class="sort-icon
+               {% if orden_actual == 'estado' %}asc{% elif orden_actual == '-estado' %}desc{% endif %}">
+                <svg width="14" height="14" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="18 15 12 9 6 15"></polyline>
+                </svg>
+            </a>
+        </th>
+    </tr>
+    </thead>
+    <tbody id="personas-table">
+    {% include "partials/personas_list.html" %}
+    </tbody>
+</table>
+
+{% endblock dashboard_content %}

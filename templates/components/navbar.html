@@ -1,0 +1,39 @@
+{% load static %}
+
+<div class="superior">
+    <div class="nav-left">
+        <a href="{% url 'modelNewApp:control' %}">
+            <img class="logoNav" src="{% static 'images/cantv-white.png' %}" alt="Cantv logo">
+        </a>
+    </div>
+
+    {% if user.is_authenticated %}
+    <div class="dropdown profileMenu">
+        <div class="nav-right dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+            {{ user.email }}  <!-- o user.get_full_name si lo defines -->
+            <div class="thumbnail-content">
+                {% if user.persona.foto_perfil %}
+                    <div class="">
+                        <img class="thumbnail-content" src="{{ user.persona.foto_perfil.url }}" width="45">
+                    </div>
+                {% else %}
+                    <div class="">
+                        <img class="thumbnail-content" src="{% static 'images/profile_empty.jpg' %}" width="45">
+                    </div>
+                {% endif %}
+        </div>
+    </div>
+        <ul class="dropdown-menu">
+            {% if request.path|slice:":10" == '/dashboard' %}
+                <li><a class="dropdown-item" href="{% url 'modelNewApp:control' %}">Control</a></li>
+            {% else %}
+                {% if es_admin %}
+                <li><a class="dropdown-item" href="{% url 'modelNewApp:dashboard' %}">Dashboard</a></li>
+                {% endif %}
+            {% endif %}
+            <li><a class="dropdown-item" href="{% url 'modelNewApp:logout' %}">Cerrar sesión</a></li>
+        </ul>
+    </div>
+    {% endif %}
+
+</div>
