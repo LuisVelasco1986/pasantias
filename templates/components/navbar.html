@@ -27,7 +27,7 @@
             {% if request.path|slice:":10" == '/dashboard' %}
                 <li><a class="dropdown-item" href="{% url 'modelNewApp:control' %}">Control</a></li>
             {% else %}
-                {% if es_admin %}
+                {% if es_admin or user.is_superuser %}
                 <li><a class="dropdown-item" href="{% url 'modelNewApp:dashboard' %}">Dashboard</a></li>
                 {% endif %}
             {% endif %}
