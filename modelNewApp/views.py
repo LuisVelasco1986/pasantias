@@ -353,13 +353,14 @@ def empleados(request):
 def empleados_agregar(request):
     if request.POST:
         sexo = request.POST.get('sexo')
-        tipos = TipoEmpleado.objects.all().order_by('nombre_tipo').exclude(id=2)
+        tipos = TipoEmpleado.objects.all().order_by('nombre_tipo').exclude(nombre_tipo="Visitante")
         roles_ids = request.POST.getlist('roles')
+        departamentos = Departamento.objects.all().order_by("nombre")
 
         if not sexo:
             messages.error(request, "Debe seleccionar un sexo.")
             roles = Rol.objects.all().order_by('nombre_rol')
-            dict = {"error": "Debe seleccionar un sexo", "data": request.POST, "tipos": tipos, "roles": roles}
+            dict = {"error": "Debe seleccionar un sexo", "data": request.POST, "tipos": tipos, "roles": roles, "departamentos": departamentos}
             return render(request, "pages/empleados_agregar.html", dict)
         else:
             if request.POST.get("administrador"):
@@ -377,7 +378,8 @@ def empleados_agregar(request):
                                 "error": "Ya existe un empleado con esa cédula.",
                                 "data": request.POST,
                                 "roles": Rol.objects.all(),
-                                "tipos": TipoEmpleado.objects.all().exclude(id=2),
+                                "tipos": TipoEmpleado.objects.all().exclude(nombre_tipo="Visitante"),
+                                "departamentos": departamentos,
                             })
                     else:
                         empleado.cedula = request.POST.get('cedula')
@@ -390,10 +392,15 @@ def empleados_agregar(request):
                                 "error": "Ya existe un empleado con ése código P00.",
                                 "data": request.POST,
                                 "roles": Rol.objects.all(),
-                                "tipos": TipoEmpleado.objects.all().exclude(id=2),
+                                "tipos": TipoEmpleado.objects.all().exclude(nombre_tipo="Visitante"),
+                                "departamentos": departamentos,
                             })
                     else:
                         empleado.codigo_p00 = request.POST.get('codigo')
+                    if request.POST.get('departamento'):
+                        empleado.departamento = Departamento.objects.filter(id=request.POST.get('departamento')).first()
+                    else:
+                        empleado.departamento = None
                     empleado.sexo = request.POST.get('sexo')
                     empleado.id_tipo = TipoEmpleado.objects.get(id=request.POST.get('tipo_persona'))
                     if 'foto_perfil' in request.FILES:
@@ -437,7 +444,7 @@ def empleados_agregar(request):
                     messages.error(request, "Debe seleccionar al menos un rol.")
                     roles = Rol.objects.all().order_by('nombre_rol')
                     dict = {"error": "Debe seleccionar al menos un rol.", "data": request.POST, "tipos": tipos,
-                            "roles": roles}
+                            "roles": roles, "departamentos": departamentos}
                     return render(request, "pages/empleados_agregar.html", dict)
             else:
                 empleado = Persona()
@@ -445,6 +452,10 @@ def empleados_agregar(request):
                 empleado.apellidos = request.POST.get('apellidos')
                 empleado.cedula = request.POST.get('cedula')
                 empleado.codigo_p00 = request.POST.get('codigo')
+                if request.POST.get('departamento'):
+                    empleado.departamento = Departamento.objects.filter(id=request.POST.get('departamento')).first()
+                else:
+                    empleado.departamento = None
                 empleado.sexo = request.POST.get('sexo')
                 empleado.id_tipo = TipoEmpleado.objects.get(id=request.POST.get('tipo_persona'))
                 if 'foto_perfil' in request.FILES:
@@ -453,9 +464,10 @@ def empleados_agregar(request):
 
             return redirect("modelNewApp:empleados")
 
-    tipos = TipoEmpleado.objects.all().order_by('nombre_tipo').exclude(id=2)
+    tipos = TipoEmpleado.objects.all().order_by('nombre_tipo').exclude(nombre_tipo="Visitante")
     roles = Rol.objects.all().order_by('nombre_rol')
-    dict = {"tipos": tipos, "roles": roles}
+    departamentos = Departamento.objects.all().order_by("nombre")
+    dict = {"tipos": tipos, "roles": roles, "departamentos": departamentos}
     return render(request, "pages/empleados_agregar.html", dict)
 
 @solo_admin
@@ -501,8 +513,9 @@ def empleados_editar(request, id):
 
     if request.POST:
         sexo = request.POST.get('sexo')
-        tipos = TipoEmpleado.objects.all().order_by('nombre_tipo').exclude(id=2)
+        tipos = TipoEmpleado.objects.all().order_by('nombre_tipo')
         roles_ids = request.POST.getlist('roles')
+        departamentos = Departamento.objects.all().order_by("nombre")
 
         persona = get_object_or_404(Persona, id=id)
 
@@ -514,7 +527,7 @@ def empleados_editar(request, id):
 
         if not sexo:
             messages.error(request, "Debe seleccionar un sexo.")
-            dict = {"error": "Debe seleccionar un sexo", "data": request.POST, "tipos": tipos, "persona": persona}
+            dict = {"error": "Debe seleccionar un sexo", "data": request.POST, "tipos": tipos, "persona": persona, "departamentos": departamentos}
             return render(request, "pages/empleados_editar.html", dict)
         else:
             persona.nombres = request.POST.get('nombres')
@@ -531,6 +544,7 @@ def empleados_editar(request, id):
                         "tipos": TipoEmpleado.objects.all().exclude(id=2),
                         "persona": persona,
                         "roles_persona": roles_persona,
+                        "departamentos": departamentos,
                     })
             else:
                 persona.cedula = request.POST.get('cedula')
@@ -546,9 +560,14 @@ def empleados_editar(request, id):
                         "tipos": TipoEmpleado.objects.all().exclude(id=2),
                         "persona": persona,
                         "roles_persona": roles_persona,
+                        "departamentos": departamentos,
                     })
             else:
                 persona.codigo_p00 = request.POST.get('codigo')
+            if request.POST.get('departamento'):
+                persona.departamento = Departamento.objects.filter(id=request.POST.get('departamento')).first()
+            else:
+                persona.departamento = None
             persona.sexo = request.POST.get('sexo')
             persona.id_tipo = TipoEmpleado.objects.get(id=request.POST.get('tipo_persona'))
             if 'foto_perfil' in request.FILES:
@@ -631,26 +650,32 @@ def empleados_editar(request, id):
                     messages.error(request, "Debe seleccionar al menos un rol.")
                     roles = Rol.objects.all().order_by('nombre_rol')
                     dict = {"error": "Debe seleccionar al menos un rol.", "data": request.POST, "tipos": tipos,
-                            "roles": roles, "persona": persona}
+                            "roles": roles, "persona": persona, "departamentos": departamentos}
                     return render(request, "pages/empleados_editar.html", dict)
 
-                if request.user.persona.id == id:
-                    return redirect("modelNewApp:perfil")
+                if request.user.persona:
+                    if request.user.persona.id == id:
+                        return redirect("modelNewApp:perfil")
+                    else:
+                        return redirect("modelNewApp:empleados_detalles", persona.id)
                 else:
                     return redirect("modelNewApp:empleados_detalles", persona.id)
-
             else:
 
                 if usuario:
                     persona.empleado.delete()
-                if request.user.persona.id == id:
-                    return redirect("modelNewApp:perfil")
+                if request.user.persona:
+                    if request.user.persona.id == id:
+                        return redirect("modelNewApp:perfil")
+                    else:
+                        return redirect("modelNewApp:empleados_detalles", persona.id)
                 else:
                     return redirect("modelNewApp:empleados_detalles", persona.id)
 
-    tipos = TipoEmpleado.objects.all().order_by('nombre_tipo').exclude(id=2)
+    tipos = TipoEmpleado.objects.all().order_by('nombre_tipo')
     roles = Rol.objects.all().order_by('nombre_rol')
-    dict = {"tipos": tipos, "persona": persona, "roles": roles, "roles_persona": roles_persona}
+    departamentos = Departamento.objects.all().order_by("nombre")
+    dict = {"tipos": tipos, "persona": persona, "roles": roles, "roles_persona": roles_persona, "departamentos": departamentos}
     return render(request, "pages/empleados_editar.html", dict)
 
 @solo_admin

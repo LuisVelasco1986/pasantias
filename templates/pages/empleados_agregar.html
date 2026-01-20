@@ -107,6 +107,28 @@
                         {% endfor %}
                     </div>
 
+                    <!-- DEPARTAMENTO -->
+                    <div class="mb-3">
+                        <label for="departamento" class="form-label labelTitle">Departamento</label>
+                        <select
+                            name="departamento"
+                            id="departamento"
+                            class="form-select"
+                        >
+                            <option value="">Seleccione un departamento</option>
+
+                            {% for departamento in departamentos %}
+                                <option
+                                    value="{{ departamento.id }}"
+                                    {% if data.departamento == departamento.id|stringformat:"s" %}selected{% endif %}
+                                >
+                                    {{ departamento.nombre }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+
                     <!-- SEXO -->
                     <div class="mb-3">
                         <label class="form-label labelTitle">Sexo</label>
@@ -149,7 +171,6 @@
                             id="email"
                             value="{{ data.email }}"
                             placeholder="Ingrese correo electrónico..."
-                            readonly
                             required {% if data.email %}{% else %}disabled{% endif %}
                         >
                         <small class="text-muted">
