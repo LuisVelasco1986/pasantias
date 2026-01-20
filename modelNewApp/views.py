@@ -500,7 +500,6 @@ def empleados_editar(request, id):
         roles_persona = usuario.roles.values_list('id', flat=True)
 
     if request.POST:
-        print(request.user.persona.empleado)
         sexo = request.POST.get('sexo')
         tipos = TipoEmpleado.objects.all().order_by('nombre_tipo').exclude(id=2)
         roles_ids = request.POST.getlist('roles')
@@ -521,7 +520,6 @@ def empleados_editar(request, id):
             persona.nombres = request.POST.get('nombres')
             persona.apellidos = request.POST.get('apellidos')
             if Persona.objects.filter(cedula=request.POST.get('cedula')).exclude(id=persona.id).exists():
-                print("Ya existe un empleado con esa cédula.")
                 messages.error(request, "Ya existe un empleado con esa cédula.")
                 return render(
                     request,
@@ -535,10 +533,8 @@ def empleados_editar(request, id):
                         "roles_persona": roles_persona,
                     })
             else:
-                print("No existe cédula")
                 persona.cedula = request.POST.get('cedula')
             if Persona.objects.filter(codigo_p00=request.POST.get('codigo')).exclude(id=persona.id).exists():
-                print("Ya existe un empleado con ése código P00.")
                 messages.error(request, "Ya existe un empleado con ése código P00.")
                 return render(
                     request,
@@ -552,21 +548,17 @@ def empleados_editar(request, id):
                         "roles_persona": roles_persona,
                     })
             else:
-                print("No existe otro empleado con ese Código P00.")
                 persona.codigo_p00 = request.POST.get('codigo')
             persona.sexo = request.POST.get('sexo')
             persona.id_tipo = TipoEmpleado.objects.get(id=request.POST.get('tipo_persona'))
             if 'foto_perfil' in request.FILES:
                 persona.foto_perfil = request.FILES['foto_perfil']
             persona.save()
-            print("Guarda la persona con la foto de perfil.")
 
             if request.POST.get("administrador"):
                 if roles_ids:
 
                     if usuario:
-
-                        print("Usuario existe y es admin.")
 
                         usuario.username = request.POST.get('email')
                         usuario.first_name = request.POST.get('nombres')
@@ -580,7 +572,6 @@ def empleados_editar(request, id):
                         usuario.roles.set(roles_ids)
 
                         if request.POST.get('email') != usuario.email:
-                            print("Quiere cambiar el email.")
                             password_temporal = secrets.token_urlsafe(8)
                             usuario.set_password(password_temporal)
                             usuario.debe_cambiar_password = True
@@ -604,7 +595,6 @@ def empleados_editar(request, id):
                                 fail_silently=False,
                             )
                     else:
-                        print("No existe usuario ni administrador.")
                         usuario = Usuario()
                         usuario.email = request.POST.get('email')
                         usuario.username = request.POST.get('email')
@@ -638,7 +628,6 @@ def empleados_editar(request, id):
                             fail_silently=False,
                         )
                 else:
-                    print("Debe seleccionar al menos un rol.")
                     messages.error(request, "Debe seleccionar al menos un rol.")
                     roles = Rol.objects.all().order_by('nombre_rol')
                     dict = {"error": "Debe seleccionar al menos un rol.", "data": request.POST, "tipos": tipos,
@@ -651,14 +640,12 @@ def empleados_editar(request, id):
                     return redirect("modelNewApp:empleados_detalles", persona.id)
 
             else:
-                print("No es administrador.")
 
                 if usuario:
                     persona.empleado.delete()
                 if request.user.persona.id == id:
                     return redirect("modelNewApp:perfil")
                 else:
-                    print("Regresa a detalles")
                     return redirect("modelNewApp:empleados_detalles", persona.id)
 
     tipos = TipoEmpleado.objects.all().order_by('nombre_tipo').exclude(id=2)
