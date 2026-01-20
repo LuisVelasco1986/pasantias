@@ -89,20 +89,38 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "modelNewProject.wsgi.application"
 
+# --------------------------------------------------------------------------------
+#     BASE DE DATOS DE SQLITE
+# --------------------------------------------------------------------------------
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": "control_acceso_db",
-        "USER": "postgres",
-        "PASSWORD": "postgres",
-        "HOST": "localhost",
-        "PORT": "5432",
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
     }
 }
+
+
+# --------------------------------------------------------------------------------
+#     BASE DE DATOS DE POSTGRES
+# --------------------------------------------------------------------------------
+
+# Database
+# https://docs.djangoproject.com/en/6.0/ref/settings/#databases
+
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.postgresql",
+#         "NAME": "control_acceso_db",
+#         "USER": "postgres",
+#         "PASSWORD": "postgres",
+#         "HOST": "localhost",
+#         "PORT": "5432",
+#     }
+# }
 
 LOGIN_URL = "/login/"
 
