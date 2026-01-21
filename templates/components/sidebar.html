@@ -25,7 +25,10 @@
             <span class="ms-2 span-sidebar">Reportes</span></a>
         </li>
         {% if user.persona %}
-        <li class="nav-item {% if '/dashboard/perfil/' in request.path %}active{% endif %}"><a class="nav-link {% if '/dashboard/perfil/' in request.path %}text-white{% else %}text-black{% endif %} d-flex align-items-center pt-4 pb-4" href="{% url 'modelNewApp:perfil' %}"><img class="dashboardIcon" src="{% if '/dashboard/perfil/' in request.path %}{% static 'images/perfil icon white.svg' %}{% else %}{% static 'images/perfil icon.svg' %}{% endif %}" alt=""><span class="ms-2 span-sidebar">Perfil</span></a></li>
+            {% if user.persona == "None" %}
+            {% else %}
+            <li class="nav-item {% if '/dashboard/perfil/' in request.path %}active{% endif %}"><a class="nav-link {% if '/dashboard/perfil/' in request.path %}text-white{% else %}text-black{% endif %} d-flex align-items-center pt-4 pb-4" href="{% url 'modelNewApp:perfil' %}"><img class="dashboardIcon" src="{% if '/dashboard/perfil/' in request.path %}{% static 'images/perfil icon white.svg' %}{% else %}{% static 'images/perfil icon.svg' %}{% endif %}" alt=""><span class="ms-2 span-sidebar">Perfil</span></a></li>
+            {% endif %}
         {% else %}
         {% endif %}
     </ul>
