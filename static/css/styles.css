@@ -59,7 +59,7 @@ body {
 }
 
 .indexContent {
-    width: 400px;
+    width: 440px;
 }
 
 .profileMenu {
@@ -68,6 +68,19 @@ body {
 
 .ingreso-salida {
     width: 100px;
+}
+
+.ingreso-salida-control {
+    width: 120px;
+}
+
+.ingreso-salida-auto {
+    width: 140px;
+}
+
+.back_control {
+    width: 20px;
+    height: 20px;
 }
 
 /* ---------------------------------------------------------------------------------------------------------------

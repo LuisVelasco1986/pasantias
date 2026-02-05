@@ -58,6 +58,34 @@ class Persona(models.Model):
     def __str__(self):
         return f"{self.nombres} {self.apellidos or ''}".strip()
 
+# modelNewApp/models.py
+class Marca(models.Model):
+    nombre = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.nombre
+
+class Modelo(models.Model):
+    nombre = models.CharField(max_length=50)
+    marca = models.ForeignKey(Marca, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ("nombre", "marca")
+
+    def __str__(self):
+        return f"{self.marca} {self.nombre}"
+
+
+class Vehiculo(models.Model):
+    placa = models.CharField(max_length=10, unique=True)
+    codigo = models.CharField(max_length=20)
+    marca = models.ForeignKey(Marca, on_delete=models.PROTECT)
+    modelo = models.ForeignKey(Modelo, on_delete=models.PROTECT)
+
+    def __str__(self):
+        return f"{self.placa} - {self.marca} {self.modelo}"
+
+
 # ------------------------------------------------------
 # Estados de los registros (ingreso, egreso, completo, etc.)
 # ------------------------------------------------------
@@ -86,6 +114,15 @@ class RegistroAcceso(models.Model):
         blank=True,
         related_name='registros'
     )
+
+    vehiculo = models.ForeignKey(
+        Vehiculo,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
+    observacion = models.CharField(max_length=100, default="Usuario olvidó marcar salida el día anterior.")
 
     id_persona = models.ForeignKey(Persona, on_delete=models.CASCADE, related_name='registros')
     fecha_hora = models.DateTimeField(blank=True, null=True)

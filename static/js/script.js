@@ -425,3 +425,173 @@ if (btnSalida && visitanteCheckbox.checked) {
         select.required = false;
     });
 }
+
+//-------------------------------------------------------------------------------------------------
+//    PARA CONTROL VEHICULO
+//-------------------------------------------------------------------------------------------------
+document.addEventListener("DOMContentLoaded", function () {
+
+    const placaInput = document.getElementById("placa");
+    const vehiculoFields = document.getElementById("vehiculo-fields");
+
+    if (!placaInput || !vehiculoFields) {
+        console.log("No estamos en control_vehiculo");
+        return;
+    }
+
+    if(placaInput){
+        placaInput.addEventListener("blur", function () {
+            const placa = this.value.trim();
+            if (!placa) return;
+
+            fetch(`/ajax/buscar-vehiculo/?placa=${placa}`)
+                .then(res => res.json())
+                .then(data => {
+                    vehiculoFields.style.display = "block";
+
+                    if (data.existe) {
+                        document.getElementById("marca").value = data.marca;
+                        document.getElementById("modelo").value = data.modelo;
+                        document.getElementById("codigo_vehiculo").value = data.codigo;
+
+                        document.getElementById("marca").readOnly = true;
+                        document.getElementById("modelo").readOnly = true;
+                        document.getElementById("codigo_vehiculo").readOnly = true;
+                    } else {
+                        document.getElementById("marca").value = "";
+                        document.getElementById("modelo").value = "";
+                        document.getElementById("codigo_vehiculo").value = "";
+
+                        document.getElementById("marca").readOnly = false;
+                        document.getElementById("modelo").readOnly = false;
+                        document.getElementById("codigo_vehiculo").readOnly = false;
+                    }
+                })
+                .catch(err => console.error("Error AJAX:", err));
+        });
+    }
+});
+
+//-----------------------------------------------------------------------------------------
+//    MODAL DE FORZAR SALIDA
+//-----------------------------------------------------------------------------------------
+
+document.addEventListener("DOMContentLoaded", function () {
+
+
+
+    const btnForzar = document.getElementById("btnForzarSalida");
+    const codigoInput = document.getElementById("codigo_empleado");
+    const codigoCed = document.getElementById("cedula_visitante");
+
+    if (!btnForzar || !codigoInput || !codigoCed) return;
+
+    if (btnForzar) {
+
+        btnForzar.addEventListener("click", function () {
+
+            console.log(codigoInput.visibility )
+
+            if (visitanteCheckbox.checked) {
+                if (!codigoCed.value.trim()) {
+                    codigoCed.focus();
+                    codigoCed.reportValidity(); // muestra el required
+                    return;
+                }
+            } else {
+                if (!codigoInput.value.trim()) {
+                    codigoInput.focus();
+                    codigoInput.reportValidity(); // muestra el required
+                    return;
+                }
+            }
+
+
+
+            // llenar modal
+            if (visitanteCheckbox.checked) {
+                document.getElementById("codigoTexto").textContent = codigoCed.value;
+                document.getElementById("tipoTexto").textContent = "cédula";
+            }else{
+                document.getElementById("codigoTexto").textContent = codigoInput.value;
+                document.getElementById("tipoTexto").textContent = "código";
+            }
+
+            document.getElementById("modal_codigo").value = codigoInput.value;
+
+            // abrir modal
+            const modal = new bootstrap.Modal(
+                document.getElementById("forzarSalidaModal")
+            );
+            modal.show();
+        });
+
+    }
+
+
+    const btnConfirmarForzarSalida = document.querySelector(
+        'button[name="forzar_salida"].btn-danger'
+    );
+
+    const motivoTextarea = document.getElementById("motivoForzarSalida");
+
+    if (btnConfirmarForzarSalida && motivoTextarea) {
+        btnConfirmarForzarSalida.addEventListener("click", function (e) {
+            if (!motivoTextarea.value.trim()) {
+                e.preventDefault();
+                motivoTextarea.focus();
+                motivoTextarea.setCustomValidity("Debes indicar el motivo de la salida forzada");
+                motivoTextarea.reportValidity();
+            } else {
+                motivoTextarea.setCustomValidity("");
+            }
+        });
+    }
+
+});
+
+//-------------------------------------------------------------------------
+//    Ajax para el search de Vehiculos
+//-------------------------------------------------------------------------
+const searchInputVehiculos = document.getElementById("search-input-vehiculos");
+const tableBodyVehiculos = document.getElementById("vehiculos-table");
+
+if (searchInputVehiculos) {
+    let timeout = null;
+
+    searchInputVehiculos.addEventListener("keyup", function () {
+        clearTimeout(timeout);
+
+        timeout = setTimeout(() => {
+            const query = this.value;
+            const params = new URLSearchParams(window.location.search);
+
+            if (query.trim() === "") {
+                params.delete("search");
+            } else {
+                params.set("search", query);
+            }
+
+            fetch(`${window.location.pathname}?${params.toString()}`, {
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+                tableBodyVehiculos.innerHTML = html;
+                activarFilasClick(); // 🔥 volver a activar clicks
+            });
+        }, 300); // debounce
+    });
+}
+
+function activarFilasClick() {
+    document.querySelectorAll(".clickable-row").forEach(row => {
+        row.addEventListener("click", () => {
+            window.location.href = row.dataset.href;
+        });
+    });
+}
+
+document.addEventListener("DOMContentLoaded", activarFilasClick);

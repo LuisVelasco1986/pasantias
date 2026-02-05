@@ -20,11 +20,11 @@ def solo_admin(view_func):
             messages.error(request, "No tienes permisos para acceder.")
             return redirect("modelNewApp:control")
 
-        empleado = getattr(user.persona, "empleado", None)
+        # empleado = getattr(user.persona, "empleado", None)
 
-        if not empleado or not empleado.roles.filter(nombre_rol="Administrador").exists():
-            messages.error(request, "No tienes permisos para acceder al Dashboard.")
-            return redirect("modelNewApp:control")
+        # if not empleado or not empleado.roles.filter(nombre_rol="Administrador").exists():
+        #     messages.error(request, "No tienes permisos para acceder al Dashboard.")
+        #     return redirect("modelNewApp:control")
 
         return view_func(request, *args, **kwargs)
 

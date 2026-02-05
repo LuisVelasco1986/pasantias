@@ -1,0 +1,13 @@
+{% for vehiculo in vehiculos %}
+<tr class="clickable-row" data-href="{% url 'modelNewApp:vehiculos_detalles' vehiculo.id %}">
+    <td>{{ vehiculo.placa }}</td>
+    <td>{{ vehiculo.marca.nombre }}</td>
+    <td>{{ vehiculo.modelo.nombre }}</td>
+    <td>{{ vehiculo.codigo }}</td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="4">No se encontraron resultados</td>
+</tr>
+{% endfor %}
+

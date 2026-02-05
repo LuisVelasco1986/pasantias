@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block navbar %}
+{% include "components/navbar.html" %}
+{% endblock navbar %}
+
+{% block content %}
+<div class="d-flex justify-content-center align-items-center" style="min-height: calc(100vh - 176px);">
+    <!-- min-height ajusta la altura: 100vh menos navbar + footer -->
+
+    <form method="post" action="#" class="indexContent" id="movimientoForm">
+        {% csrf_token %}
+        <div class="d-flex gap-3">
+            <a class="" href="{% url 'modelNewApp:control' %}">
+                <img class="back_control" src="{% static 'images/left-arrow-return.svg' %}" alt="">
+            </a>
+            <h4 class="text-left mb-4">Ingreso a pié</h4>
+        </div>
+
+        <div id="empleado-fields" class="mb-3">
+            <label for="codigo" class="form-label">Código P00</label>
+            <input name="codigo" type="text" class="form-control" id="codigo_empleado"
+                   placeholder="Por favor ingrese código P00..." required>
+        </div>
+
+        <div id="visitante-fields" style="display:none;">
+            <div class="mb-3">
+                <label for="cedula_visitante" class="form-label">Cédula</label>
+                <input type="text" class="form-control" id="cedula_visitante" name="cedula_visitante"
+                       placeholder="Por favor ingrese cédula...">
+            </div>
+            <div class="mb-3">
+                <label for="nombre_visitante" class="form-label">Nombre</label>
+                <input type="text" class="form-control" id="nombre_visitante" name="nombre_visitante">
+            </div>
+            <div class="mb-3">
+                <label for="apellido_visitante" class="form-label">Apellido</label>
+                <input type="text" class="form-control" id="apellido_visitante" name="apellido_visitante">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Tipo</label>
+                <select name="departamento" class="form-select" id="departamentoSelect">
+                    <option value="">Seleccione el departamento a donde se dirige</option>
+                    {% for dep in departamentos %}
+                    <option value="{{ dep.nombre }}">
+                        {{ dep.nombre }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+        </div>
+
+        <div class="mb-3 form-check">
+            <input name="visitante" value="checked" type="checkbox" class="form-check-input" id="soy-visitante">
+            <label class="form-check-label" for="soy-visitante">Soy visitante</label>
+        </div>
+
+        {% if mensaje_error %}
+        <div class="alert alert-danger mt-2 alert-auto-close">{{ mensaje_error }}</div>
+        {% elif mensaje %}
+        <div class="alert alert-info mt-2 alert-auto-close">{{ mensaje }}</div>
+        {% endif %}
+
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-danger mt-3 alert-auto-close">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <div class="d-flex justify-content-center gap-3">
+            <button id="btnEntrada" name="ingreso" value="ingreso" type="submit" class="btn btn-primary ingreso-salida">
+                Ingreso
+            </button>
+            <button id="btnSalida" name="salida" value="salida" type="submit" class="btn btn-secondary ingreso-salida">
+                Salida
+            </button>
+            <button
+                    id="btnForzarSalida"
+                    name="forzar_salida"
+                    value="forzar_salida"
+                    class="btn btn-warning"
+                    type="button">
+                ⚠️ Forzar salida
+            </button>
+            <input type="hidden" name="codigo_modal" id="modal_codigo">
+
+        </div>
+        <!-- Modal forzar salida -->
+        <div class="modal fade" id="forzarSalidaModal" tabindex="-1"
+             aria-labelledby="forzarSalidaLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="forzarSalidaLabel">Forzar salida</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        ¿Estás seguro que deseas forzar la salida del usuario con
+                        <strong id="tipoTexto"></strong>
+                        <strong id="codigoTexto"></strong>?
+                        <div class="mt-3 mb-3">
+                            <label for="motivoForzarSalida" class="form-label">
+                                Motivo de la salida forzada
+                            </label>
+                            <textarea
+                                id="motivoForzarSalida"
+                                name="motivo_forzar_salida"
+                                class="form-control"
+                                rows="3"
+                                placeholder="Ej: Usuario olvidó marcar salida el día anterior"
+                            ></textarea>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"
+                                onclick="this.blur()">
+                            Cancelar
+                        </button>
+
+                        <!-- ESTE SÍ ENVÍA -->
+                        <button type="submit"
+                                name="forzar_salida"
+                                value="forzar_salida"
+                                class="btn btn-danger">
+                            Confirmar salida
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </form>
+
+</div>
+
+
+{% endblock content %}
+
+
+{% block footer %}
+{% include "components/footer.html" %}
+{% endblock footer %}

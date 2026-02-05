@@ -13,7 +13,12 @@
             <span class="ms-2 span-sidebar">Dashboard</span></a>
         </li>
         <li class="nav-item {% if '/dashboard/personas/' in request.path %}active{% endif %}"><a class="nav-link {% if '/dashboard/personas/' in request.path %}text-white{% else %}text-black{% endif %} d-flex align-items-center pt-4 pb-4" href="{% url 'modelNewApp:empleados' %}"><img class="dashboardIcon" src="{% if '/dashboard/personas/' in request.path %}{% static 'images/users icon white.svg' %}{% else %}{% static 'images/users icon.svg' %}{% endif %}" alt=""><span class="ms-2 span-sidebar">Personas</span></a></li>
+        <li class="nav-item {% if '/dashboard/vehiculos/' in request.path %}active{% endif %}"><a class="nav-link {% if '/dashboard/vehiculos/' in request.path %}text-white{% else %}text-black{% endif %} d-flex align-items-center pt-4 pb-4" href="{% url 'modelNewApp:vehiculos' %}"><img class="dashboardIcon" src="{% if '/dashboard/vehiculos/' in request.path %}{% static 'images/users icon white.svg' %}{% else %}{% static 'images/users icon.svg' %}{% endif %}" alt=""><span class="ms-2 span-sidebar">Vehiculos</span></a></li>
+        {% if es_admin or user.is_superuser %}
         <li class="nav-item {% if '/dashboard/estadisticos/' in request.path %}active{% endif %}"><a class="nav-link {% if '/dashboard/estadisticos/' in request.path %}text-white{% else %}text-black{% endif %} d-flex align-items-center pt-4 pb-4" href="{% url 'modelNewApp:estadisticos' %}"><img class="dashboardIcon" src="{% if '/dashboard/estadisticos/' in request.path %}{% static 'images/dashboard icon white.svg' %}{% else %}{% static 'images/dashboard icon.svg' %}{% endif %}" alt=""><span class="ms-2 span-sidebar">Estadísticos</span></a></li>
+        {% else %}
+        {% endif %}
+        {% if es_admin or user.is_superuser %}
         <li class="nav-item {% if '/dashboard/reportes/' in request.path %}active{% endif %}"><a class="nav-link {% if '/dashboard/reportes/' in request.path %}text-white{% else %}text-black{% endif %} d-flex align-items-center pt-4 pb-4" href="{% url 'modelNewApp:reportes' %}">
             <svg class="dashboardIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
                  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -24,6 +29,9 @@
             </svg>
             <span class="ms-2 span-sidebar">Reportes</span></a>
         </li>
+        {% else %}
+        {% endif %}
+
         {% if user.persona %}
             {% if user.persona == "None" %}
             {% else %}

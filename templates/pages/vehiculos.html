@@ -1,0 +1,123 @@
+{% extends "pages/dashboard.html" %}
+{% load static %}
+{% load querystring %}
+
+{% block dashboard_content %}
+
+<div class="d-flex justify-content-between align-items-center">
+    <div class="sectionTitle">Vehiculos</div>
+    <a class="agregarEmpleadoLink" href="{% url 'modelNewApp:vehiculos_agregar' %}">
+        <div class="agregarEmpleado">
+            <img class="plusIcon" src="{% static 'images/plus icon.svg' %}" alt="Agregar vehiculo">
+            <div class="">Agregar vehiculo</div>
+        </div>
+    </a>
+</div>
+<div class="filterOptions">
+    <div class="searchBar">
+        <div class="input-group">
+            <span class="input-group-text bg-white">
+                <img src="{% static 'images/search icon.svg' %}" alt="Buscar" style="height:16px;">
+            </span>
+            <input
+                    type="search"
+                    name="search"
+                    id="search-input-vehiculos"
+                    class="form-control"
+                    placeholder="Buscar..."
+            >
+        </div>
+    </div>
+    <form method="get" class="filtros d-flex gap-2 align-items-center">
+
+    <!-- Marca -->
+    <select name="marca" class="form-select w-auto" onchange="this.form.submit()">
+        <option value="">Todas las marcas</option>
+        {% for marca in marcas %}
+        <option value="{{ marca.id }}"
+            {% if request.GET.marca == marca.id|stringformat:"s" %}selected{% endif %}
+        >
+            {{ marca.nombre }}
+        </option>
+        {% endfor %}
+    </select>
+
+    <!-- Modelo -->
+    <select name="modelo" class="form-select w-auto" onchange="this.form.submit()">
+        <option value="">Todos los modelos</option>
+        {% for modelo in modelos %}
+        <option value="{{ modelo.id }}"
+            {% if request.GET.modelo == modelo.id|stringformat:"s" %}selected{% endif %}
+        >
+            {{ modelo.nombre }}
+        </option>
+        {% endfor %}
+    </select>
+
+    <!-- Limpiar -->
+    <a href="{% url 'modelNewApp:vehiculos' %}" class="btn btn-outline-secondary">
+        Limpiar filtros
+    </a>
+
+</form>
+
+</div>
+<table class="table table-hover mt-3">
+    <thead>
+    <tr>
+        <th>
+            Placa
+            <a href="?{% if orden_actual == 'placa' %}{% querystring request.GET 'orden' '-placa' %}{% else %}{% querystring request.GET 'orden' 'placa' %}{% endif %}"
+               class="sort-icon
+               {% if orden_actual == 'placa' %}asc{% elif orden_actual == '-placa' %}desc{% endif %}">
+                <svg width="14" height="14" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="18 15 12 9 6 15"></polyline>
+                </svg>
+            </a>
+        </th>
+        <th>
+            Marca
+            <a href="?{% if orden_actual == 'marca' %}{% querystring request.GET 'orden' '-marca' %}{% else %}{% querystring request.GET 'orden' 'marca' %}{% endif %}"
+               class="sort-icon
+               {% if orden_actual == 'marca' %}asc{% elif orden_actual == '-marca' %}desc{% endif %}">
+                <svg width="14" height="14" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="18 15 12 9 6 15"></polyline>
+                </svg>
+            </a>
+        </th>
+        <th>
+            Modelo
+            <a href="?{% if orden_actual == 'codigo' %}{% querystring request.GET 'orden' '-codigo' %}{% else %}{% querystring request.GET 'orden' 'codigo' %}{% endif %}"
+               class="sort-icon
+               {% if orden_actual == 'codigo' %}asc{% elif orden_actual == '-codigo' %}desc{% endif %}">
+                <svg width="14" height="14" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="18 15 12 9 6 15"></polyline>
+                </svg>
+            </a>
+        </th>
+        <th>
+            Código
+            <a href="?{% if orden_actual == 'estado' %}{% querystring request.GET 'orden' '-estado' %}{% else %}{% querystring request.GET 'orden' 'estado' %}{% endif %}"
+               class="sort-icon
+               {% if orden_actual == 'estado' %}asc{% elif orden_actual == '-estado' %}desc{% endif %}">
+                <svg width="14" height="14" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="18 15 12 9 6 15"></polyline>
+                </svg>
+            </a>
+        </th>
+    </tr>
+    </thead>
+    <tbody id="vehiculos-table">
+    {% include "partials/vehiculos_list.html" %}
+    </tbody>
+</table>
+
+{% endblock dashboard_content %}

@@ -7,45 +7,10 @@
 
 {% block content %}
 <div class="d-flex justify-content-center align-items-center" style="min-height: calc(100vh - 176px);">
-    <!-- min-height ajusta la altura: 100vh menos navbar + footer -->
-    <form method="post" action="#" class="indexContent" id="movimientoForm">
+    <form method="post">
         {% csrf_token %}
-        <div id="empleado-fields" class="mb-3">
-            <label for="codigo" class="form-label">Código P00</label>
-            <input name="codigo" type="text" class="form-control" id="codigo_empleado" placeholder="Por favor ingrese código P00..." required>
-        </div>
 
-        <div id="visitante-fields" style="display:none;">
-            <div class="mb-3">
-                <label for="cedula_visitante" class="form-label">Cédula</label>
-                <input type="text" class="form-control" id="cedula_visitante" name="cedula_visitante" placeholder="Por favor ingrese cédula...">
-            </div>
-            <div class="mb-3">
-                <label for="nombre_visitante" class="form-label">Nombre</label>
-                <input type="text" class="form-control" id="nombre_visitante" name="nombre_visitante">
-            </div>
-            <div class="mb-3">
-                <label for="apellido_visitante" class="form-label">Apellido</label>
-                <input type="text" class="form-control" id="apellido_visitante" name="apellido_visitante">
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Tipo</label>
-                <select name="departamento" class="form-select" id="departamentoSelect">
-                <option value="">Seleccione el departamento a donde se dirige</option>
-                {% for dep in departamentos %}
-                <option value="{{ dep.nombre }}">
-                    {{ dep.nombre }}
-                </option>
-                {% endfor %}
-            </select>
-            </div>
-
-        </div>
-
-        <div class="mb-3 form-check">
-            <input name="visitante" value="checked" type="checkbox" class="form-check-input" id="soy-visitante">
-            <label class="form-check-label" for="soy-visitante">Soy visitante</label>
-        </div>
+        <h4 class="text-center mb-4">Seleccione tipo de ingreso/salida</h4>
 
         {% if mensaje_error %}
         <div class="alert alert-danger mt-2 alert-auto-close">{{ mensaje_error }}</div>
@@ -61,13 +26,16 @@
         {% endfor %}
         {% endif %}
 
-        <div class="d-flex justify-content-center gap-3">
-            <button id="btnEntrada" name="ingreso" value="ingreso" type="submit" class="btn btn-primary ingreso-salida">Ingreso</button>
-            <button id="btnSalida" name="salida" value="salida" type="submit" class="btn btn-secondary ingreso-salida">Salida</button>
+        <div class="d-flex justify-content-center gap-4">
+            <button name="tipo_ingreso" value="PIE" class="btn btn-primary ingreso-salida-control">
+                A pié
+            </button>
+
+            <button name="tipo_ingreso" value="VEHICULO" class="btn btn-secondary ingreso-salida-control">
+                En vehículo
+            </button>
         </div>
-
     </form>
-
 </div>
 {% endblock content %}
 

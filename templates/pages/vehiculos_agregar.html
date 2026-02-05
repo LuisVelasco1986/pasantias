@@ -1,0 +1,123 @@
+{% extends "pages/dashboard.html" %}
+{% load static %}
+
+{% block dashboard_content %}
+
+<div class="d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center">
+        <a href="{% url 'modelNewApp:vehiculos' %}">
+            <img class="arrow-left" src="{% static 'images/left-arrow-return.svg' %}" alt="Volver">
+        </a>
+        <div class="sectionTitle ms-2">Agregar Vehículo</div>
+    </div>
+</div>
+
+<div class="mt-5">
+    <form class="formAgregarPersona" method="post" action="{% url 'modelNewApp:vehiculos_agregar' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="container-fluid">
+            <div class="row">
+
+                <!-- COLUMNA IZQUIERDA -->
+                <div class="col-6">
+
+                    <div class="mb-3">
+                        <label for="placa" class="form-label labelTitle">Placa</label>
+                        <input
+                            name="placa"
+                            type="text"
+                            class="form-control"
+                            id="placa"
+                            value="{{ data.placa }}"
+                            placeholder="Ingrese la placa..."
+                            required
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="marca" class="form-label labelTitle">Marca</label>
+                        <input
+                            type="text"
+                            name="marca"
+                            id="marca"
+                            class="form-control"
+                            list="marcasList"
+                            placeholder="Ingrese o seleccione marca..."
+                            required
+                        >
+
+                        <datalist id="marcasList">
+                            {% for marca in marcas %}
+                                <option value="{{ marca.nombre }}">
+                            {% endfor %}
+                        </datalist>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="modelo" class="form-label labelTitle">Modelo</label>
+                        <input
+                            type="text"
+                            name="modelo"
+                            id="modelo"
+                            class="form-control"
+                            list="modelosList"
+                            placeholder="Ingrese o seleccione modelo..."
+                            required
+                        >
+
+                        <datalist id="modelosList">
+                            {% for modelo in modelos %}
+                                <option value="{{ modelo.nombre }}">
+                            {% endfor %}
+                        </datalist>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="codigo" class="form-label labelTitle">Código</label>
+                        <input
+                            name="codigo"
+                            type="text"
+                            class="form-control"
+                            id="codigo"
+                            value="{{ data.codigo }}"
+                            placeholder="Ingrese el código..."
+
+                        >
+                    </div>
+
+                    <!-- ADMIN -->
+
+                </div>
+
+                <!-- COLUMNA DERECHA -->
+                <div class="col-6">
+
+
+
+                </div>
+            </div>
+
+            <!-- MENSAJES -->
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-danger mt-3 alert-auto-close">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- BOTÓN -->
+            <div class="row mt-4">
+                <div class="d-flex justify-content-end">
+                    <button class="btn btn-primary" type="submit">
+                        Agregar vehículo
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </form>
+</div>
+
+{% endblock dashboard_content %}

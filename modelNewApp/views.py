@@ -35,12 +35,16 @@ from reportlab.pdfbase.pdfmetrics import stringWidth
 
 import csv
 
+
 class HomeView(View):
     def get(self, request):
         return render(request, "pages/index.html")
 
 
 def login_view(request):
+    if user_logged_in == True:
+        return redirect("modelNewApp:control")
+
     if request.method == "POST":
         email = request.POST.get("email")
         password = request.POST.get("password")
@@ -85,109 +89,462 @@ def cambiar_password(request):
 
 @login_required
 def control(request):
+    if request.method == "POST":
+        tipo = request.POST.get("tipo_ingreso")
+
+        if tipo == "PIE":
+            return redirect("modelNewApp:control_pie")
+        elif tipo == "VEHICULO":
+            return redirect("modelNewApp:control_vehiculo")
+
+    return render(request, "pages/control.html")
+
+
+@login_required
+def control_pie(request):
     departamentos = Departamento.objects.all().order_by('nombre')
     dict = {"departamentos": departamentos}
     if request.method == "POST":
-        print(request.POST.get("departamento"))
-        departamentos = Departamento.objects.all().order_by('nombre')
-        if request.POST.get("visitante"):
-            visitante = Persona.objects.filter(cedula=request.POST.get("cedula_visitante")).first()
-            if visitante:
-                registro_abierto = RegistroAcceso.objects.filter(id_persona=visitante).last()
-                if registro_abierto and registro_abierto.tipo_movimiento == "INGRESO":
-                    if request.POST.get("ingreso"):
-                        dict = {
-                            "mensaje_error": "No puede registrar ingreso porque tiene un registro abierto actualmente.", "departamentos": departamentos}
-                    else:
-                        if request.POST.get("nombre_visitante") != visitante.nombres:
-                            visitante.nombres = request.POST.get("nombre_visitante")
-                            visitante.save()
-                        if request.POST.get("apellido_visitante") != visitante.apellidos:
-                            visitante.apellidos = request.POST.get("apellido_visitante")
-                            visitante.save()
-                        registro_abierto = RegistroAcceso()
-                        registro_abierto.id_persona = visitante
-                        registro_abierto.fecha_hora = datetime.now()
-                        registro_abierto.tipo_movimiento = "EGRESO"
-                        registro_abierto.save()
+        if "forzar_salida" in request.POST:
+            print("Forzar salida")
+            print(request.POST.get("motivo_forzar_salida"))
+            print(request.POST.get("visitante"))
+
+            if request.POST.get("visitante"):
+                print(request.POST.get("cedula_visitante"))
+                if Persona.objects.filter(cedula=request.POST.get("cedula_visitante")).exists():
+                    print("El visitante existe")
+                    if RegistroAcceso.objects.filter(id_persona=Persona.objects.filter(cedula=request.POST.get("cedula_visitante")).first()).last() and RegistroAcceso.objects.filter(id_persona=Persona.objects.filter(cedula=request.POST.get("cedula_visitante")).first()).last().tipo_movimiento == "INGRESO":
+                        print("El ultimo fué ingreso")
+                        registro = RegistroAcceso()
+                        registro.id_persona = Persona.objects.filter(cedula=request.POST.get("cedula_visitante")).first()
+                        registro.fecha_hora = datetime.now()
+                        registro.tipo_movimiento = "EGRESO"
+                        registro.observacion = request.POST.get("motivo_forzar_salida")
+                        registro.save()
                         dict = {"mensaje": "Ha registrado su salida efectivamente.", "departamentos": departamentos}
+                    else:
+                        print("El último fué egreso")
+                        dict = {"mensaje_error": "El visitante no se encuentra dentro del edificio.",
+                                "departamentos": departamentos}
+                else:
+                    print("El visitante no existe")
+                    dict = {"mensaje_error": "No existe un visitante con esa cédula", "departamentos": departamentos}
+            else:
+                print(request.POST.get("codigo"))
+                if Persona.objects.filter(codigo_p00=request.POST.get("codigo")).exists():
+                    print("La persona existe")
+                    if RegistroAcceso.objects.filter(id_persona=Persona.objects.filter(codigo_p00=request.POST.get("codigo")).first()).last() and RegistroAcceso.objects.filter(id_persona=Persona.objects.filter(codigo_p00=request.POST.get("codigo")).first()).last().tipo_movimiento == "INGRESO":
+                        print("El ultimo fué ingreso")
+                        registro = RegistroAcceso()
+                        registro.id_persona = Persona.objects.filter(
+                        codigo_p00=request.POST.get("codigo")).first()
+                        registro.fecha_hora = datetime.now()
+                        registro.tipo_movimiento = "EGRESO"
+                        registro.observacion = request.POST.get("motivo_forzar_salida")
+                        registro.save()
+                        dict = {"mensaje": "Ha registrado su salida efectivamente.", "departamentos": departamentos}
+                    else:
+                        print("El último fué egreso")
+                        dict = {"mensaje_error": "El empleado no se encuentra dentro del edificio.",
+                                "departamentos": departamentos}
+                else:
+                    print("La persona no existe")
+                    dict = {"mensaje_error": "No existe un empleado con ese código", "departamentos": departamentos}
+
+        else:
+            print(request.POST.get("departamento"))
+            departamentos = Departamento.objects.all().order_by('nombre')
+            if request.POST.get("visitante"):
+                visitante = Persona.objects.filter(cedula=request.POST.get("cedula_visitante")).first()
+                if visitante:
+                    registro_abierto = RegistroAcceso.objects.filter(id_persona=visitante).last()
+                    if registro_abierto and registro_abierto.tipo_movimiento == "INGRESO":
+                        if request.POST.get("ingreso"):
+                            dict = {
+                                "mensaje_error": "No puede registrar ingreso porque tiene un registro abierto actualmente.",
+                                "departamentos": departamentos}
+                        else:
+                            if request.POST.get("nombre_visitante") != visitante.nombres:
+                                visitante.nombres = request.POST.get("nombre_visitante")
+                                visitante.save()
+                            if request.POST.get("apellido_visitante") != visitante.apellidos:
+                                visitante.apellidos = request.POST.get("apellido_visitante")
+                                visitante.save()
+                            registro_abierto = RegistroAcceso()
+                            registro_abierto.id_persona = visitante
+                            registro_abierto.fecha_hora = datetime.now()
+                            registro_abierto.tipo_movimiento = "EGRESO"
+                            registro_abierto.save()
+                            dict = {"mensaje": "Ha registrado su salida efectivamente.", "departamentos": departamentos}
+                    else:
+                        if request.POST.get("ingreso"):
+                            registro = RegistroAcceso()
+                            registro.id_persona = visitante
+                            if request.POST.get("nombre_visitante") != visitante.nombres:
+                                visitante.nombres = request.POST.get("nombre_visitante")
+                                visitante.save()
+                            if request.POST.get("apellido_visitante") != visitante.apellidos:
+                                visitante.apellidos = request.POST.get("apellido_visitante")
+                                visitante.save()
+                            registro.tipo_movimiento = "INGRESO"
+                            if request.POST.get("departamento"):
+                                registro.departamento_destino = Departamento.objects.filter(
+                                    nombre=request.POST.get("departamento")).first()
+                            else:
+                                dict = {"mensaje_error": "Debe seleccionar un departamento.",
+                                        "departamentos": departamentos}
+                                return render(request, "pages/control_pie.html", dict)
+                            # registro.departamento_destino =
+                            registro.fecha_hora = datetime.now()
+                            registro.save()
+                            dict = {"mensaje": "Ha registrado su entrada efectivamente.", "departamentos": departamentos}
+                        else:
+                            dict = {"mensaje_error": "No puede registrar salida porque no tiene registro de entrada.",
+                                    "departamentos": departamentos}
                 else:
                     if request.POST.get("ingreso"):
+                        empleado = Persona()
+                        empleado.id_tipo = TipoEmpleado.objects.get(nombre_tipo="Visitante")
+                        empleado.nombres = request.POST.get("nombre_visitante")
+                        empleado.apellidos = request.POST.get("apellido_visitante")
+                        empleado.cedula = request.POST.get("cedula_visitante")
+                        empleado.save()
+
                         registro = RegistroAcceso()
-                        registro.id_persona = visitante
-                        if request.POST.get("nombre_visitante") != visitante.nombres:
-                            visitante.nombres = request.POST.get("nombre_visitante")
-                            visitante.save()
-                        if request.POST.get("apellido_visitante") != visitante.apellidos:
-                            visitante.apellidos = request.POST.get("apellido_visitante")
-                            visitante.save()
+                        registro.id_persona = empleado
                         registro.tipo_movimiento = "INGRESO"
                         if request.POST.get("departamento"):
-                            registro.departamento_destino = Departamento.objects.filter(nombre=request.POST.get("departamento")).first()
+                            registro.departamento_destino = Departamento.objects.filter(
+                                nombre=request.POST.get("departamento")).first()
                         else:
                             dict = {"mensaje_error": "Debe seleccionar un departamento.",
                                     "departamentos": departamentos}
-                            return render(request, "pages/control.html", dict)
+                            return render(request, "pages/control_pie.html", dict)
                         # registro.departamento_destino =
                         registro.fecha_hora = datetime.now()
                         registro.save()
                         dict = {"mensaje": "Ha registrado su entrada efectivamente.", "departamentos": departamentos}
                     else:
-                        dict = {"mensaje_error": "No puede registrar salida porque no tiene registro de entrada.", "departamentos": departamentos}
-            else:
-                if request.POST.get("ingreso"):
-                    empleado = Persona()
-                    empleado.id_tipo = TipoEmpleado.objects.get(nombre_tipo="Visitante")
-                    empleado.nombres = request.POST.get("nombre_visitante")
-                    empleado.apellidos = request.POST.get("apellido_visitante")
-                    empleado.cedula = request.POST.get("cedula_visitante")
-                    empleado.save()
-
-                    registro = RegistroAcceso()
-                    registro.id_persona = empleado
-                    registro.tipo_movimiento = "INGRESO"
-                    if request.POST.get("departamento"):
-                        registro.departamento_destino = Departamento.objects.filter(
-                            nombre=request.POST.get("departamento")).first()
-                    else:
-                        dict = {"mensaje_error": "Debe seleccionar un departamento.",
+                        dict = {"mensaje_error": "No puede registrar salida porque no tiene registro de entrada.",
                                 "departamentos": departamentos}
-                        return render(request, "pages/control.html", dict)
-                    # registro.departamento_destino =
-                    registro.fecha_hora = datetime.now()
-                    registro.save()
-                    dict = {"mensaje": "Ha registrado su entrada efectivamente.", "departamentos": departamentos}
-                else:
-                    dict = {"mensaje_error": "No puede registrar salida porque no tiene registro de entrada.", "departamentos": departamentos}
-        else:
-            empleado = Persona.objects.filter(codigo_p00=request.POST.get("codigo")).first()
-            if empleado:
-                registro_abierto = RegistroAcceso.objects.filter(id_persona=empleado).last()
-                if registro_abierto and registro_abierto.tipo_movimiento == "INGRESO":
-                    if request.POST.get("ingreso"):
-                        dict = {
-                            "mensaje_error": "No puede registrar ingreso porque tiene un registro abierto actualmente.", "departamentos": departamentos}
+            else:
+                empleado = Persona.objects.filter(codigo_p00=request.POST.get("codigo")).first()
+                if empleado:
+                    registro_abierto = RegistroAcceso.objects.filter(id_persona=empleado).last()
+                    if registro_abierto and registro_abierto.tipo_movimiento == "INGRESO":
+                        if request.POST.get("ingreso"):
+                            dict = {
+                                "mensaje_error": "No puede registrar ingreso porque tiene un registro abierto actualmente.",
+                                "departamentos": departamentos}
+                        else:
+                            registro_abierto = RegistroAcceso()
+                            registro_abierto.id_persona = empleado
+                            registro_abierto.fecha_hora = datetime.now()
+                            registro_abierto.tipo_movimiento = "EGRESO"
+                            registro_abierto.save()
+                            dict = {"mensaje": "Ha registrado su salida efectivamente.", "departamentos": departamentos}
                     else:
-                        registro_abierto = RegistroAcceso()
-                        registro_abierto.id_persona = empleado
-                        registro_abierto.fecha_hora = datetime.now()
-                        registro_abierto.tipo_movimiento = "EGRESO"
-                        registro_abierto.save()
-                        dict = {"mensaje": "Ha registrado su salida efectivamente.", "departamentos": departamentos}
+                        if request.POST.get("ingreso"):
+                            registro = RegistroAcceso()
+                            registro.id_persona = empleado
+                            registro.tipo_movimiento = "INGRESO"
+                            registro.departamento_destino = empleado.departamento
+                            registro.fecha_hora = datetime.now()
+                            registro.save()
+                            dict = {"mensaje": "Ha registrado su entrada efectivamente.", "departamentos": departamentos}
+                        else:
+                            dict = {"mensaje_error": "No puede registrar salida porque no tiene registro de entrada.",
+                                    "departamentos": departamentos}
+                else:
+                    dict = {"mensaje_error": "No existe un empleado con ese código", "departamentos": departamentos}
+    return render(request, "pages/control_pie.html", dict)
+
+
+@login_required
+def control_vehiculo(request):
+    departamentos = Departamento.objects.all().order_by('nombre')
+    marcas = Marca.objects.all().order_by('nombre')
+    modelos = Modelo.objects.all().order_by('nombre')
+    dict = {"departamentos": departamentos, "marcas": marcas, "modelos": modelos}
+    if request.method == "POST":
+        marcas = Marca.objects.all().order_by('nombre')
+        modelos = Modelo.objects.all().order_by('nombre')
+        marca_txt = request.POST.get("marca").strip()
+        modelo_txt = request.POST.get("modelo").strip()
+
+        marca, _ = Marca.objects.get_or_create(
+            nombre__iexact=marca_txt,
+            defaults={"nombre": marca_txt}
+        )
+
+        modelo, _ = Modelo.objects.get_or_create(
+            nombre__iexact=modelo_txt,
+            marca=marca,
+            defaults={
+                "nombre": modelo_txt,
+                "marca": marca
+            }
+        )
+        if "forzar_salida" in request.POST:
+            print("Forzar salida")
+            print(request.POST.get("motivo_forzar_salida"))
+            print(request.POST.get("visitante"))
+
+            if request.POST.get("visitante"):
+                print(request.POST.get("cedula_visitante"))
+                if Persona.objects.filter(cedula=request.POST.get("cedula_visitante")).exists():
+                    print("El visitante existe")
+                    if RegistroAcceso.objects.filter(
+                            id_persona=Persona.objects.filter(cedula=request.POST.get("cedula_visitante")).first()).last() and RegistroAcceso.objects.filter(
+                            id_persona=Persona.objects.filter(cedula=request.POST.get("cedula_visitante")).first()).last().tipo_movimiento == "INGRESO":
+                        print("El ultimo fué ingreso")
+
+                        # ------------------------------------------------
+                        # Creo registro
+                        # ------------------------------------------------
+                        registro = RegistroAcceso()
+                        registro.id_persona = Persona.objects.filter(
+                        cedula=request.POST.get("cedula_visitante")).first()
+                        registro.fecha_hora = datetime.now()
+                        registro.tipo_movimiento = "EGRESO"
+                        # ------------------------------------------------
+                        # Checkeo vehiculo
+                        # ------------------------------------------------
+                        vehiculo = Vehiculo.objects.filter(placa=request.POST.get("placa")).first()
+                        if vehiculo:
+                            vehiculo.marca = marca
+                            vehiculo.modelo = modelo
+                            if request.POST.get("codigo_vehiculo"):
+                                vehiculo.codigo = request.POST.get("codigo_vehiculo")
+                            vehiculo.save()
+                        else:
+                            vehiculo = Vehiculo()
+                            vehiculo.placa = request.POST.get("placa")
+                            vehiculo.marca = marca
+                            vehiculo.modelo = modelo
+                            if request.POST.get("codigo_vehiculo"):
+                                vehiculo.codigo = request.POST.get("codigo_vehiculo")
+                            vehiculo.save()
+                        registro.vehiculo = vehiculo
+                        registro.observacion = request.POST.get("motivo_forzar_salida")
+                        registro.save()
+                        dict = {"mensaje": "Ha registrado su salida efectivamente.", "departamentos": departamentos, "marcas": marcas, "modelos": modelos}
+                    else:
+                        print("El último fué egreso")
+                        dict = {"mensaje_error": "El visitante no se encuentra dentro del edificio.",
+                                "departamentos": departamentos, "marcas": marcas, "modelos": modelos}
+                else:
+                    print("El visitante no existe")
+                    dict = {"mensaje_error": "No existe un visitante con esa cédula", "departamentos": departamentos, "marcas": marcas, "modelos": modelos}
+            else:
+                print(request.POST.get("codigo"))
+                if Persona.objects.filter(codigo_p00=request.POST.get("codigo")).exists():
+                    print("La persona existe")
+                    if RegistroAcceso.objects.filter(
+                            id_persona=Persona.objects.filter(codigo_p00=request.POST.get("codigo")).first()).last() and RegistroAcceso.objects.filter(
+                            id_persona=Persona.objects.filter(codigo_p00=request.POST.get("codigo")).first()).last().tipo_movimiento == "INGRESO":
+                        print("El ultimo fué ingreso")
+                        registro = RegistroAcceso()
+                        registro.id_persona = Persona.objects.filter(
+                        codigo_p00=request.POST.get("codigo")).first()
+                        registro.fecha_hora = datetime.now()
+                        registro.tipo_movimiento = "EGRESO"
+                        # ------------------------------------------------
+                        # Checkeo vehiculo
+                        # ------------------------------------------------
+                        vehiculo = Vehiculo.objects.filter(placa=request.POST.get("placa")).first()
+                        if vehiculo:
+                            vehiculo.marca = marca
+                            vehiculo.modelo = modelo
+                            if request.POST.get("codigo_vehiculo"):
+                                vehiculo.codigo = request.POST.get("codigo_vehiculo")
+                            vehiculo.save()
+                        else:
+                            vehiculo = Vehiculo()
+                            vehiculo.placa = request.POST.get("placa")
+                            vehiculo.marca = marca
+                            vehiculo.modelo = modelo
+                            if request.POST.get("codigo_vehiculo"):
+                                vehiculo.codigo = request.POST.get("codigo_vehiculo")
+                            vehiculo.save()
+                        registro.vehiculo = vehiculo
+                        registro.observacion = request.POST.get("motivo_forzar_salida")
+                        registro.save()
+                        dict = {"mensaje": "Ha registrado su salida efectivamente.", "departamentos": departamentos, "marcas": marcas, "modelos": modelos}
+                    else:
+                        print("El último fué egreso")
+                        dict = {"mensaje_error": "El empleado no se encuentra dentro del edificio.",
+                                "departamentos": departamentos, "marcas": marcas, "modelos": modelos}
+                else:
+                    print("La persona no existe")
+                    dict = {"mensaje_error": "No existe un empleado con ese código", "departamentos": departamentos, "marcas": marcas, "modelos": modelos}
+        else:
+            departamentos = Departamento.objects.all().order_by('nombre')
+            if request.POST.get("visitante"):
+                visitante = Persona.objects.filter(cedula=request.POST.get("cedula_visitante")).first()
+                if visitante:
+                    registro_abierto = RegistroAcceso.objects.filter(id_persona=visitante).last()
+                    if registro_abierto and registro_abierto.tipo_movimiento == "INGRESO":
+                        if request.POST.get("ingreso"):
+                            dict = {
+                                "mensaje_error": "No puede registrar ingreso porque tiene un registro abierto actualmente.",
+                                "departamentos": departamentos, "marcas": marcas, "modelos": modelos}
+                        else:
+                            if request.POST.get("nombre_visitante") != visitante.nombres:
+                                visitante.nombres = request.POST.get("nombre_visitante")
+                                visitante.save()
+                            if request.POST.get("apellido_visitante") != visitante.apellidos:
+                                visitante.apellidos = request.POST.get("apellido_visitante")
+                                visitante.save()
+                            registro_abierto = RegistroAcceso()
+                            registro_abierto.id_persona = visitante
+                            registro_abierto.fecha_hora = datetime.now()
+                            registro_abierto.tipo_movimiento = "EGRESO"
+                            vehiculo = Vehiculo.objects.filter(placa=request.POST.get("placa")).first()
+                            if vehiculo:
+                                registro_abierto.vehiculo = vehiculo
+                            else:
+                                vehiculo = Vehiculo()
+                                vehiculo.placa = request.POST.get("placa")
+                                vehiculo.marca = marca
+                                vehiculo.modelo = modelo
+                                if request.POST.get("codigo_vehiculo"):
+                                    vehiculo.codigo = request.POST.get("codigo_vehiculo")
+                                vehiculo.save()
+                            registro_abierto.vehiculo = vehiculo
+                            registro_abierto.save()
+                            dict = {"mensaje": "Ha registrado su salida efectivamente.", "departamentos": departamentos, "marcas": marcas, "modelos": modelos}
+                    else:
+                        if request.POST.get("ingreso"):
+                            registro = RegistroAcceso()
+                            registro.id_persona = visitante
+                            if request.POST.get("nombre_visitante") != visitante.nombres:
+                                visitante.nombres = request.POST.get("nombre_visitante")
+                                visitante.save()
+                            if request.POST.get("apellido_visitante") != visitante.apellidos:
+                                visitante.apellidos = request.POST.get("apellido_visitante")
+                                visitante.save()
+                            registro.tipo_movimiento = "INGRESO"
+                            if request.POST.get("departamento"):
+                                registro.departamento_destino = Departamento.objects.filter(
+                                    nombre=request.POST.get("departamento")).first()
+                            else:
+                                dict = {"mensaje_error": "Debe seleccionar un departamento.",
+                                        "departamentos": departamentos, "marcas": marcas, "modelos": modelos}
+                                return render(request, "pages/control_vehiculo.html", dict)
+                            # registro.departamento_destino =
+                            registro.fecha_hora = datetime.now()
+                            vehiculo = Vehiculo.objects.filter(placa=request.POST.get("placa")).first()
+                            if vehiculo:
+                                registro.vehiculo = vehiculo
+                            else:
+                                vehiculo = Vehiculo()
+                                vehiculo.placa = request.POST.get("placa")
+                                vehiculo.marca = marca
+                                vehiculo.modelo = modelo
+                                if request.POST.get("codigo_vehiculo"):
+                                    vehiculo.codigo = request.POST.get("codigo_vehiculo")
+                                vehiculo.save()
+                            registro.vehiculo = vehiculo
+                            registro.save()
+                            dict = {"mensaje": "Ha registrado su entrada efectivamente.", "departamentos": departamentos, "marcas": marcas, "modelos": modelos}
+                        else:
+                            dict = {"mensaje_error": "No puede registrar salida porque no tiene registro de entrada.",
+                                    "departamentos": departamentos, "marcas": marcas, "modelos": modelos}
                 else:
                     if request.POST.get("ingreso"):
+                        empleado = Persona()
+                        empleado.id_tipo = TipoEmpleado.objects.get(nombre_tipo="Visitante")
+                        empleado.nombres = request.POST.get("nombre_visitante")
+                        empleado.apellidos = request.POST.get("apellido_visitante")
+                        empleado.cedula = request.POST.get("cedula_visitante")
+                        empleado.save()
+
                         registro = RegistroAcceso()
                         registro.id_persona = empleado
                         registro.tipo_movimiento = "INGRESO"
-                        registro.departamento_destino = empleado.departamento
+                        if request.POST.get("departamento"):
+                            registro.departamento_destino = Departamento.objects.filter(
+                                nombre=request.POST.get("departamento")).first()
+                        else:
+                            dict = {"mensaje_error": "Debe seleccionar un departamento.",
+                                    "departamentos": departamentos, "marcas": marcas, "modelos": modelos}
+                            return render(request, "pages/control_vehiculo.html", dict)
+                        # registro.departamento_destino =
                         registro.fecha_hora = datetime.now()
+                        vehiculo = Vehiculo.objects.filter(placa=request.POST.get("placa")).first()
+                        if vehiculo:
+                            registro.vehiculo = vehiculo
+                        else:
+                            vehiculo = Vehiculo()
+                            vehiculo.placa = request.POST.get("placa")
+                            vehiculo.marca = marca
+                            vehiculo.modelo = modelo
+                            if request.POST.get("codigo_vehiculo"):
+                                vehiculo.codigo = request.POST.get("codigo_vehiculo")
+                            vehiculo.save()
+                        registro.vehiculo = vehiculo
                         registro.save()
-                        dict = {"mensaje": "Ha registrado su entrada efectivamente.", "departamentos": departamentos}
+                        dict = {"mensaje": "Ha registrado su entrada efectivamente.", "departamentos": departamentos, "marcas": marcas, "modelos": modelos}
                     else:
-                        dict = {"mensaje_error": "No puede registrar salida porque no tiene registro de entrada.", "departamentos": departamentos}
+                        dict = {"mensaje_error": "No puede registrar salida porque no tiene registro de entrada.",
+                                "departamentos": departamentos, "marcas": marcas, "modelos": modelos}
             else:
-                dict = {"mensaje_error": "No existe un empleado con ese código", "departamentos": departamentos}
-    return render(request, "pages/control.html", dict)
+                empleado = Persona.objects.filter(codigo_p00=request.POST.get("codigo")).first()
+                if empleado:
+                    registro_abierto = RegistroAcceso.objects.filter(id_persona=empleado).last()
+                    if registro_abierto and registro_abierto.tipo_movimiento == "INGRESO":
+                        if request.POST.get("ingreso"):
+                            dict = {
+                                "mensaje_error": "No puede registrar ingreso porque tiene un registro abierto actualmente.",
+                                "departamentos": departamentos, "marcas": marcas, "modelos": modelos}
+                        else:
+                            registro_abierto = RegistroAcceso()
+                            registro_abierto.id_persona = empleado
+                            registro_abierto.fecha_hora = datetime.now()
+                            registro_abierto.tipo_movimiento = "EGRESO"
+                            vehiculo = Vehiculo.objects.filter(placa=request.POST.get("placa")).first()
+                            if vehiculo:
+                                registro_abierto.vehiculo = vehiculo
+                            else:
+                                vehiculo = Vehiculo()
+                                vehiculo.placa = request.POST.get("placa")
+                                vehiculo.marca = marca
+                                vehiculo.modelo = modelo
+                                if request.POST.get("codigo_vehiculo"):
+                                    vehiculo.codigo = request.POST.get("codigo_vehiculo")
+                                vehiculo.save()
+                            registro_abierto.vehiculo = vehiculo
+                            registro_abierto.save()
+                            dict = {"mensaje": "Ha registrado su salida efectivamente.", "departamentos": departamentos, "marcas": marcas, "modelos": modelos}
+                    else:
+                        if request.POST.get("ingreso"):
+                            registro = RegistroAcceso()
+                            registro.id_persona = empleado
+                            registro.tipo_movimiento = "INGRESO"
+                            registro.departamento_destino = empleado.departamento
+                            registro.fecha_hora = datetime.now()
+                            vehiculo = Vehiculo.objects.filter(placa=request.POST.get("placa")).first()
+                            if vehiculo:
+                                registro.vehiculo = vehiculo
+                            else:
+                                vehiculo = Vehiculo()
+                                vehiculo.placa = request.POST.get("placa")
+                                vehiculo.marca = marca
+                                vehiculo.modelo = modelo
+                                if request.POST.get("codigo_vehiculo"):
+                                    vehiculo.codigo = request.POST.get("codigo_vehiculo")
+                                vehiculo.save()
+                            registro.vehiculo = vehiculo
+                            registro.save()
+                            dict = {"mensaje": "Ha registrado su entrada efectivamente.", "departamentos": departamentos, "marcas": marcas, "modelos": modelos}
+                        else:
+                            dict = {"mensaje_error": "No puede registrar salida porque no tiene registro de entrada.",
+                                    "departamentos": departamentos, "marcas": marcas, "modelos": modelos}
+                else:
+                    dict = {"mensaje_error": "No existe un empleado con ese código", "departamentos": departamentos, "marcas": marcas, "modelos": modelos}
+    return render(request, "pages/control_vehiculo.html", dict)
 
 
 def buscar_persona_por_cedula(request):
@@ -206,6 +563,21 @@ def buscar_persona_por_cedula(request):
         })
 
     return JsonResponse({"found": False})
+
+
+def buscar_vehiculo_por_placa(request):
+    placa = request.GET.get("placa")
+
+    try:
+        vehiculo = Vehiculo.objects.get(placa__iexact=placa)
+        return JsonResponse({
+            "existe": True,
+            "marca": vehiculo.marca.nombre,
+            "modelo": vehiculo.modelo.nombre,
+            "codigo": vehiculo.codigo,
+        })
+    except Vehiculo.DoesNotExist:
+        return JsonResponse({"existe": False})
 
 
 @solo_admin
@@ -280,6 +652,7 @@ def dashboard(request):
 
     return render(request, "pages/dashboard_main.html", context)
 
+
 @solo_admin
 @login_required
 def empleados(request):
@@ -348,6 +721,7 @@ def empleados(request):
 
     return render(request, "pages/empleados.html", dict)
 
+
 @solo_admin
 @login_required
 def empleados_agregar(request):
@@ -355,12 +729,17 @@ def empleados_agregar(request):
         sexo = request.POST.get('sexo')
         tipos = TipoEmpleado.objects.all().order_by('nombre_tipo').exclude(nombre_tipo="Visitante")
         roles_ids = request.POST.getlist('roles')
+        es_admin = Rol.objects.filter(
+            id__in=roles_ids,
+            nombre_rol__iexact="Administrador"
+        ).exists()
         departamentos = Departamento.objects.all().order_by("nombre")
 
         if not sexo:
             messages.error(request, "Debe seleccionar un sexo.")
             roles = Rol.objects.all().order_by('nombre_rol')
-            dict = {"error": "Debe seleccionar un sexo", "data": request.POST, "tipos": tipos, "roles": roles, "departamentos": departamentos}
+            dict = {"error": "Debe seleccionar un sexo", "data": request.POST, "tipos": tipos, "roles": roles,
+                    "departamentos": departamentos}
             return render(request, "pages/empleados_agregar.html", dict)
         else:
             if request.POST.get("administrador"):
@@ -419,7 +798,7 @@ def empleados_agregar(request):
                     # 👉 permisos admin
                     usuario.is_staff = True  # puede entrar al admin
                     usuario.is_active = True  # usuario activo
-                    usuario.is_superuser = True
+                    usuario.is_superuser = es_admin
                     usuario.save()
                     usuario.roles.set(roles_ids)
 
@@ -470,6 +849,7 @@ def empleados_agregar(request):
     dict = {"tipos": tipos, "roles": roles, "departamentos": departamentos}
     return render(request, "pages/empleados_agregar.html", dict)
 
+
 @solo_admin
 @login_required
 def empleados_detalles(request, id):
@@ -490,6 +870,7 @@ def empleados_detalles(request, id):
     dict = {"persona": persona, "page_obj": page_obj, }
     return render(request, "pages/empleados_detalles.html", dict)
 
+
 @solo_admin
 @login_required
 def empleados_eliminar(request, id):
@@ -500,6 +881,7 @@ def empleados_eliminar(request, id):
 
     persona.delete()
     return redirect("modelNewApp:empleados")
+
 
 @solo_admin
 @login_required
@@ -515,6 +897,10 @@ def empleados_editar(request, id):
         sexo = request.POST.get('sexo')
         tipos = TipoEmpleado.objects.all().order_by('nombre_tipo')
         roles_ids = request.POST.getlist('roles')
+        es_admin = Rol.objects.filter(
+            id__in=roles_ids,
+            nombre_rol__iexact="Administrador"
+        ).exists()
         departamentos = Departamento.objects.all().order_by("nombre")
 
         persona = get_object_or_404(Persona, id=id)
@@ -527,7 +913,8 @@ def empleados_editar(request, id):
 
         if not sexo:
             messages.error(request, "Debe seleccionar un sexo.")
-            dict = {"error": "Debe seleccionar un sexo", "data": request.POST, "tipos": tipos, "persona": persona, "departamentos": departamentos}
+            dict = {"error": "Debe seleccionar un sexo", "data": request.POST, "tipos": tipos, "persona": persona,
+                    "departamentos": departamentos}
             return render(request, "pages/empleados_editar.html", dict)
         else:
             persona.nombres = request.POST.get('nombres')
@@ -586,7 +973,7 @@ def empleados_editar(request, id):
                         # 👉 permisos admin
                         usuario.is_staff = True  # puede entrar al admin
                         usuario.is_active = True  # usuario activo
-                        usuario.is_superuser = True
+                        usuario.is_superuser = es_admin
                         usuario.save()
                         usuario.roles.set(roles_ids)
 
@@ -626,7 +1013,7 @@ def empleados_editar(request, id):
                         # 👉 permisos admin
                         usuario.is_staff = True  # puede entrar al admin
                         usuario.is_active = True  # usuario activo
-                        usuario.is_superuser = True
+                        usuario.is_superuser = es_admin
                         usuario.save()
                         usuario.roles.set(roles_ids)
 
@@ -675,8 +1062,10 @@ def empleados_editar(request, id):
     tipos = TipoEmpleado.objects.all().order_by('nombre_tipo')
     roles = Rol.objects.all().order_by('nombre_rol')
     departamentos = Departamento.objects.all().order_by("nombre")
-    dict = {"tipos": tipos, "persona": persona, "roles": roles, "roles_persona": roles_persona, "departamentos": departamentos}
+    dict = {"tipos": tipos, "persona": persona, "roles": roles, "roles_persona": roles_persona,
+            "departamentos": departamentos}
     return render(request, "pages/empleados_editar.html", dict)
+
 
 @solo_admin
 @login_required
@@ -686,6 +1075,7 @@ def empleados_activar(request, id):
     persona.save()
 
     return redirect("modelNewApp:empleados_detalles", persona.id)
+
 
 @solo_admin
 @login_required
@@ -700,6 +1090,149 @@ def empleados_desactivar(request, id):
 @login_required
 def dashboard_control(request):
     return render(request, "pages/dashboard_control.html")
+
+
+@solo_admin
+@login_required
+def vehiculos(request):
+    vehiculos = Vehiculo.objects.all().order_by("placa")
+    marcas = Marca.objects.all().order_by("nombre")
+    modelos = Modelo.objects.all().order_by("nombre")
+
+    search = request.GET.get('search', '')
+    marca = request.GET.get('marca')
+    modelo = request.GET.get('modelo')
+    orden = request.GET.get('orden')
+
+    if marca:
+        vehiculos = vehiculos.filter(marca__id__icontains=marca)
+
+    if modelo:
+        vehiculos = vehiculos.filter(modelo__id__icontains=modelo)
+
+    if search:
+        vehiculos = vehiculos.filter(
+            Q(placa__icontains=search) |
+            Q(codigo__icontains=search) |
+            Q(marca__nombre__icontains=search) |
+            Q(modelo__nombre__icontains=search)
+        )
+
+    if orden == "placa":
+        vehiculos = vehiculos.order_by("placa")
+    elif orden == "-placa":
+        vehiculos = vehiculos.order_by("-placa")
+    elif orden == "marca":
+        vehiculos = vehiculos.order_by("marca")
+    elif orden == "-marca":
+        vehiculos = vehiculos.order_by("-marca")
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return render(request, 'partials/vehiculos_list.html', {
+            'vehiculos': vehiculos,
+            "orden_actual": orden
+        })
+
+    dict = {"vehiculos": vehiculos, "marcas": marcas, "modelos": modelos, "orden_actual": orden}
+
+    return render(request, "pages/vehiculos.html", dict)
+
+@solo_admin
+@login_required
+def vehiculos_agregar(request):
+
+    if request.POST:
+
+        placa = request.POST.get("placa")
+        marca = request.POST.get("marca")
+        modelo = request.POST.get("modelo")
+
+        vehiculo = Vehiculo.objects.filter(placa=placa).first()
+
+        if vehiculo:
+            print("Ya existe esa placa")
+        else:
+            vehiculo = Vehiculo()
+            vehiculo.placa = placa
+            marca, _ = Marca.objects.get_or_create(nombre__iexact=marca, defaults={"nombre": marca})
+            vehiculo.marca = marca
+            modelo, _ = Modelo.objects.get_or_create(nombre__iexact=modelo, defaults={"nombre": modelo, "marca": marca})
+            vehiculo.modelo = modelo
+            if request.POST.get("codigo"):
+                vehiculo.codigo = request.POST.get("codigo")
+            vehiculo.save()
+
+            return redirect("modelNewApp:vehiculos")
+
+    marcas = Marca.objects.all().order_by("nombre")
+    modelos = Modelo.objects.all().order_by("nombre")
+
+    dict = {"marcas": marcas, "modelos": modelos}
+    return render(request, "pages/vehiculos_agregar.html", dict)
+
+@solo_admin
+@login_required
+def vehiculos_detalles(request, id):
+
+    vehiculo = Vehiculo.objects.get(id=id)
+
+    historial_accesos = (
+        RegistroAcceso.objects
+        .filter(vehiculo=vehiculo)
+        .select_related('departamento_destino')
+        .order_by('-fecha_hora')
+    )
+
+    # ──────────────── Paginación ────────────────
+    paginator = Paginator(historial_accesos, 20)  # 10 registros por página
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    dict = {"vehiculo": vehiculo, "page_obj": page_obj}
+
+    return render(request, "pages/vehiculos_detalles.html", dict)
+
+@solo_admin
+@login_required
+def vehiculos_eliminar(request, id):
+
+    vehiculo = Vehiculo.objects.filter(id=id).first()
+
+    if vehiculo:
+        vehiculo.delete()
+
+    return redirect("modelNewApp:vehiculos")
+
+@solo_admin
+@login_required
+def vehiculos_editar(request, id):
+
+    vehiculo = Vehiculo.objects.filter(id=id).first()
+    marcas = Marca.objects.all().order_by("nombre")
+    modelos = Modelo.objects.all().order_by("nombre")
+
+    if request.POST:
+
+        placa = request.POST.get("placa")
+        marca = request.POST.get("marca")
+        modelo = request.POST.get("modelo")
+
+        vehiculo.placa = placa
+        marca, _ = Marca.objects.get_or_create(nombre__iexact=marca, defaults={"nombre": marca})
+        vehiculo.marca = marca
+        modelo, _ = Modelo.objects.get_or_create(nombre__iexact=modelo, defaults={"nombre": modelo, "marca": marca})
+        vehiculo.modelo = modelo
+        if request.POST.get("codigo"):
+            vehiculo.codigo = request.POST.get("codigo")
+        else:
+            vehiculo.codigo = ""
+        vehiculo.save()
+
+        return redirect("modelNewApp:vehiculos_detalles", vehiculo.id)
+
+    dict = {"vehiculo": vehiculo, "marcas": marcas, "modelos": modelos}
+
+    return render(request, "pages/vehiculos_editar.html", dict)
 
 @solo_admin
 @login_required
@@ -760,7 +1293,6 @@ def estadisticos(request):
     else:
         primer_registro = registros.order_by("fecha_hora").first()
 
-
         if primer_registro:
             fecha_inicio = primer_registro.fecha_hora.date()
             fecha_fin = date.today()
@@ -769,7 +1301,6 @@ def estadisticos(request):
         else:
             dias_periodo = 0
             rango_dias = 0
-
 
     print(total_ingresos)
     print(dias_periodo)
@@ -839,9 +1370,9 @@ def estadisticos(request):
     fecha_fin = datetime.strptime(hasta, '%Y-%m-%d') if hasta else None
 
     # if not desde and not hasta:
-        # Tomar solo los últimos 7 días
-        # fecha_limite = now().date() - timedelta(days=6)
-        # registros = registros.filter(fecha_hora__date__gte=fecha_limite)
+    # Tomar solo los últimos 7 días
+    # fecha_limite = now().date() - timedelta(days=6)
+    # registros = registros.filter(fecha_hora__date__gte=fecha_limite)
 
     # Elegir la granularidad
     if rango_dias <= 30:
@@ -974,6 +1505,7 @@ def estadisticos(request):
 
     return render(request, "pages/estadisticos.html", context)
 
+
 @solo_admin
 @login_required
 def reportes(request):
@@ -1021,14 +1553,13 @@ def reportes(request):
         registros = registros.filter(departamento_destino__nombre=departamento)
 
     if formato == "pdf":
-        return exportar_pdf(request, tipo_reporte = tipo_reporte)
+        return exportar_pdf(request, tipo_reporte=tipo_reporte)
 
     if formato == "excel":
         return exportar_excel(request, tipo_reporte=tipo_reporte)
 
     if formato == "csv":
         return exportar_csv(request, tipo_reporte=tipo_reporte)
-
 
     if tipo_reporte == "accesos":
 
@@ -1155,6 +1686,7 @@ def reportes(request):
 
     return render(request, "pages/reportes.html", context)
 
+
 @solo_admin
 @login_required
 def perfil(request):
@@ -1194,7 +1726,61 @@ def exportar_historial_pdf(request, persona_id):
             c.showPage()
             y = height - 50
 
-        c.drawString(50, y, reg.fecha_hora.strftime("%d/%m/%Y %I:%M %p"))
+        # c.drawString(50, y, reg.fecha_hora.strftime("%d/%m/%Y %I:%M %p"))
+        fecha_local = timezone.localtime(reg.fecha_hora)
+
+        c.drawString(
+            50,
+            y,
+            fecha_local.strftime("%d/%m/%Y %I:%M %p")
+        )
+
+        c.drawString(200, y, reg.tipo_movimiento)
+        depto = reg.departamento_destino.nombre if reg.departamento_destino else "-"
+        c.drawString(350, y, depto)
+        y -= 20
+
+    c.save()
+    return response
+
+def exportar_historial_pdf_vehiculos(request, vehiculo_id):
+    vehiculo = Vehiculo.objects.get(id=vehiculo_id)
+    registros = RegistroAcceso.objects.filter(vehiculo=vehiculo).order_by('fecha_hora')
+
+    # Crear respuesta HTTP con tipo PDF
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="historial_{vehiculo.placa}.pdf"'
+
+    # Crear PDF
+    c = canvas.Canvas(response, pagesize=letter)
+    width, height = letter
+    y = height - 50
+
+    c.setFont("Helvetica-Bold", 16)
+    c.drawString(50, y, f"Historial de accesos: Vehículo con placa {vehiculo.placa}")
+    y -= 30
+
+    c.setFont("Helvetica-Bold", 12)
+    c.drawString(50, y, "Fecha y hora")
+    c.drawString(200, y, "Tipo movimiento")
+    c.drawString(350, y, "Departamento")
+    y -= 20
+
+    c.setFont("Helvetica", 12)
+    for reg in registros:
+        if y < 50:  # nueva página
+            c.showPage()
+            y = height - 50
+
+        # c.drawString(50, y, reg.fecha_hora.strftime("%d/%m/%Y %I:%M %p"))
+        fecha_local = timezone.localtime(reg.fecha_hora)
+
+        c.drawString(
+            50,
+            y,
+            fecha_local.strftime("%d/%m/%Y %I:%M %p")
+        )
+
         c.drawString(200, y, reg.tipo_movimiento)
         depto = reg.departamento_destino.nombre if reg.departamento_destino else "-"
         c.drawString(350, y, depto)
@@ -1231,6 +1817,36 @@ def exportar_historial_excel(request, persona_id):
     wb.save(response)
     return response
 
+def exportar_historial_excel_vehiculos(request, vehiculo_id):
+    vehiculo = Vehiculo.objects.get(id=vehiculo_id)
+    registros = RegistroAcceso.objects.filter(vehiculo=vehiculo).order_by('fecha_hora')
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Historial"
+
+    # Encabezados
+    headers = ["Fecha y hora", "Tipo movimiento", "Departamento"]
+    for col_num, header in enumerate(headers, 1):
+        ws[f"{get_column_letter(col_num)}1"] = header
+
+    # Datos
+    for row_num, reg in enumerate(registros, 2):
+        fecha_local = timezone.localtime(reg.fecha_hora)
+        # ws[f"A{row_num}"] = reg.fecha_hora.strftime("%d/%m/%Y %I:%M %p")
+        ws[f"A{row_num}"] = fecha_local.strftime("%d/%m/%Y %I:%M %p")
+        ws[f"B{row_num}"] = reg.tipo_movimiento
+        ws[f"C{row_num}"] = reg.departamento_destino.nombre if reg.departamento_destino else "-"
+
+    # Respuesta HTTP
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+    response['Content-Disposition'] = f'attachment; filename=historial_{vehiculo.placa}.xlsx'
+    wb.save(response)
+    return response
+
+
 def obtener_queryset_reporte(request):
     qs = RegistroAcceso.objects.select_related(
         "id_persona",
@@ -1256,11 +1872,13 @@ def obtener_queryset_reporte(request):
 
     return qs.order_by("-fecha_hora")
 
+
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 
-def exportar_pdf(request, tipo_reporte = "accesos"):
+
+def exportar_pdf(request, tipo_reporte="accesos"):
     queryset = obtener_queryset_reporte(request)
 
     response = HttpResponse(content_type="application/pdf")
@@ -1397,6 +2015,7 @@ def exportar_pdf(request, tipo_reporte = "accesos"):
 
     return response
 
+
 def exportar_excel(request, tipo_reporte="accesos"):
     queryset = obtener_queryset_reporte(request)
 
@@ -1504,7 +2123,7 @@ def exportar_excel(request, tipo_reporte="accesos"):
     # ------------------------
     for i, col in enumerate(columnas, 1):
         max_length = max(
-            [len(str(row[i-1])) for row in filas] + [len(col)]
+            [len(str(row[i - 1])) for row in filas] + [len(col)]
         )
         ws.column_dimensions[get_column_letter(i)].width = max_length + 2
 
@@ -1517,6 +2136,7 @@ def exportar_excel(request, tipo_reporte="accesos"):
     response["Content-Disposition"] = "attachment; filename=reporte.xlsx"
     wb.save(response)
     return response
+
 
 def exportar_csv(request, tipo_reporte="accesos"):
     queryset = obtener_queryset_reporte(request)
@@ -1636,8 +2256,8 @@ def exportar_csv(request, tipo_reporte="accesos"):
 
     return response
 
-def recuperar_contraseña(request):
 
+def recuperar_contraseña(request):
     dict = {}
 
     if request.POST:
@@ -1677,4 +2297,3 @@ def recuperar_contraseña(request):
                 })
 
     return render(request, "pages/recuperar_contraseña.html", dict)
-
