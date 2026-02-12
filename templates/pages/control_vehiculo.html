@@ -34,14 +34,14 @@
                     </div>
                     <div class="mb-3">
                         <label for="nombre_visitante" class="form-label">Nombre</label>
-                        <input type="text" class="form-control" id="nombre_visitante" name="nombre_visitante">
+                        <input type="text" class="form-control" id="nombre_visitante" name="nombre_visitante" placeholder="Por favor ingrese nombre...">
                     </div>
                     <div class="mb-3">
                         <label for="apellido_visitante" class="form-label">Apellido</label>
-                        <input type="text" class="form-control" id="apellido_visitante" name="apellido_visitante">
+                        <input type="text" class="form-control" id="apellido_visitante" name="apellido_visitante" placeholder="Por favor ingrese apellido...">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Tipo</label>
+                        <label class="form-label">Departamento</label>
                         <select name="departamento" class="form-select" id="departamentoSelect">
                             <option value="">Seleccione el departamento a donde se dirige</option>
                             {% for dep in departamentos %}
@@ -81,6 +81,7 @@
                             id="marca"
                             class="form-control"
                             list="marcasList"
+                            placeholder="Por favor ingrese la marca..."
                             required
                         >
 
@@ -99,6 +100,7 @@
                             id="modelo"
                             class="form-control"
                             list="modelosList"
+                            placeholder="Por favor ingrese el modelo..."
                             required
                         >
 
@@ -111,7 +113,7 @@
 
                     <div class="mb-3">
                         <label class="form-label">Código</label>
-                        <input type="text" name="codigo_vehiculo" id="codigo_vehiculo" class="form-control">
+                        <input type="text" name="codigo_vehiculo" id="codigo_vehiculo" class="form-control" placeholder="Por favor ingrese el código...">
                     </div>
                 </div>
             </div>

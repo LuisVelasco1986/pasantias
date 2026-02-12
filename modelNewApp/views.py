@@ -1345,34 +1345,56 @@ def estadisticos(request):
     # HORA PICO
     # --------------------------------
     # HORA PICO
-    ingresos_por_hora = (
+    # ingresos_por_hora = (
+    #     registros
+    #     .annotate(hora=TruncHour('fecha_hora'))
+    #     .values('hora')
+    #     .annotate(cantidad=Count('id'))
+    #     .order_by('-cantidad')
+    # )
+    #
+    # if ingresos_por_hora:
+    #     hora_pico = ingresos_por_hora[0]['hora'].strftime('%I:%M %p')
+    #
+    #     # Formatear cantidad grande
+    #     cantidad_hora_pico = ingresos_por_hora[0]['cantidad']
+    #     if cantidad_hora_pico >= 1000:
+    #         cantidad_hora_pico_fmt = f"{round(cantidad_hora_pico / 1000)}k"
+    #     else:
+    #         cantidad_hora_pico_fmt = str(cantidad_hora_pico)
+    # else:
+    #     hora_pico = '-'
+    #     cantidad_hora_pico_fmt = '0'
+
+    # ----------------------------------------------------------------------------
+    #     Nueva hora pico
+    # ----------------------------------------------------------------------------
+    datos_hora = (
         registros
-        .annotate(hora=TruncHour('fecha_hora'))
-        .values('hora')
+        .annotate(hora_num=ExtractHour('fecha_hora'))
+        .values('hora_num')
         .annotate(cantidad=Count('id'))
-        .order_by('-cantidad')
     )
 
-    if ingresos_por_hora:
-        hora_pico = ingresos_por_hora[0]['hora'].strftime('%I:%M %p')
+    hora_pico_data = datos_hora.order_by('-cantidad').first()
 
-        # Formatear cantidad grande
-        cantidad_hora_pico = ingresos_por_hora[0]['cantidad']
-        if cantidad_hora_pico >= 1000:
-            cantidad_hora_pico_fmt = f"{round(cantidad_hora_pico / 1000)}k"
-        else:
-            cantidad_hora_pico_fmt = str(cantidad_hora_pico)
+    if hora_pico_data:
+        hora_pico = datetime.strptime(
+            str(hora_pico_data['hora_num']), "%H"
+        ).strftime('%I:%M %p')
+
+        cantidad = hora_pico_data['cantidad']
+        cantidad_hora_pico = (
+            f"{round(cantidad / 1000)}k"
+            if cantidad >= 1000
+            else str(cantidad)
+        )
     else:
-        hora_pico = '-'
-        cantidad_hora_pico_fmt = '0'
+        hora_pico = "-"
+        cantidad_hora_pico = "0"
 
     fecha_inicio = datetime.strptime(desde, '%Y-%m-%d') if desde else None
     fecha_fin = datetime.strptime(hasta, '%Y-%m-%d') if hasta else None
-
-    # if not desde and not hasta:
-    # Tomar solo los últimos 7 días
-    # fecha_limite = now().date() - timedelta(days=6)
-    # registros = registros.filter(fecha_hora__date__gte=fecha_limite)
 
     # Elegir la granularidad
     if rango_dias <= 30:
@@ -1402,25 +1424,25 @@ def estadisticos(request):
             r['periodo'] = r['periodo'].strftime('%b %Y')  # ej: Ene 2026
 
     # Para gráfico ingresos por hora
-    ingresos_por_hora = list(
-        registros
-        .annotate(hora_num=ExtractHour('fecha_hora'))
-        .values('hora_num')
-        .annotate(cantidad=Count('id'))
-        .order_by('hora_num')  # 👈 ahora sí, 0 → 23
-    )
-    for r in ingresos_por_hora:
-        hora = r['hora_num']
-        r['hora_label'] = datetime.strptime(str(hora), "%H").strftime("%I %p")
+    # ingresos_por_hora = list(
+    #     registros
+    #     .annotate(hora_num=ExtractHour('fecha_hora'))
+    #     .values('hora_num')
+    #     .annotate(cantidad=Count('id'))
+    #     .order_by('hora_num')  # 👈 ahora sí, 0 → 23
+    # )
+    # for r in ingresos_por_hora:
+    #     hora = r['hora_num']
+    #     r['hora_label'] = datetime.strptime(str(hora), "%H").strftime("%I %p")
 
-    # Formatear hora para JS (08 AM, 09 AM, etc.)
-    # ingresos_por_hora_js = [
-    #     {
-    #         "hora": r["hora"].strftime("%I %p"),
-    #         "cantidad": r["cantidad"]
-    #     }
-    #     for r in ingresos_por_hora
-    # ]
+    ingresos_por_hora = list(
+        datos_hora.order_by('hora_num')
+    )
+
+    for r in ingresos_por_hora:
+        r['hora_label'] = datetime.strptime(
+            str(r['hora_num']), "%H"
+        ).strftime("%I %p")
 
     # Tipo de persona
     ingresos_por_tipo = (
@@ -1491,7 +1513,7 @@ def estadisticos(request):
         "dia_mas_ingresos": dia_mas_ingresos,
         "cantidad_mas_ingresos": cantidad_mas_ingresos_fmt,
         "hora_pico": hora_pico,
-        "cantidad_hora_pico": cantidad_hora_pico_fmt,
+        "cantidad_hora_pico": cantidad_hora_pico,
         "ingresos_por_dia": ingresos_por_dia,
         "fecha_inicio": fecha_inicio,
         "fecha_fin": fecha_fin,
@@ -1633,7 +1655,7 @@ def reportes(request):
                 ingresos=Count("id", filter=models.Q(tipo_movimiento="INGRESO")),
                 salidas=Count("id", filter=models.Q(tipo_movimiento="EGRESO")),
             )
-            .order_by("fecha_hora__date")
+            .order_by("-fecha_hora__date")
         )
 
     elif tipo_reporte == "tipo":
