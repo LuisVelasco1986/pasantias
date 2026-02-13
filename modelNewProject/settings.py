@@ -40,8 +40,8 @@ SECRET_KEY = env("SECRET_KEY")
 DEBUG = env.bool("DEBUG")
 
 #ALLOWED_HOSTS = []
-ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
-
+# ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
+ALLOWED_HOSTS=luisvelasco2026.pythonanywhere.com,127.0.0.1,localhost
 
 # Application definition
 
