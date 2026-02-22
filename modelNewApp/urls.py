@@ -36,4 +36,7 @@ urlpatterns = [
     path('persona/<int:persona_id>/export_excel/', exportar_historial_excel, name='exportar_excel'),
     path('vehiculos/<int:vehiculo_id>/export_excel/', exportar_historial_excel_vehiculos, name='exportar_excel_vehiculo'),
     path("reportes/pdf/", exportar_pdf, name="exportar_pdf"),
+    path('db-download/', db_download, name='db_download'),
+    path('db-restore/', db_restore, name='db_restore'),
+    path('db-panel/', db_panel, name='db_panel'),
 ]

@@ -2319,3 +2319,47 @@ def recuperar_contraseña(request):
                 })
 
     return render(request, "pages/recuperar_contraseña.html", dict)
+
+# ---------------------------------------------------------------------------------------
+#     Respaldo simple de la base de datos
+# ---------------------------------------------------------------------------------------
+
+import os
+from django.http import HttpResponse, FileResponse
+from django.shortcuts import render, redirect
+from django.conf import settings
+
+DB_FILE = os.path.join(settings.BASE_DIR, 'db.sqlite3')
+
+
+def db_panel(request):
+    return render(request, 'pages/admin_db_panel.html')
+
+
+def db_download(request):
+    if os.path.exists(DB_FILE):
+        return FileResponse(
+            open(DB_FILE, 'rb'),
+            as_attachment=True,
+            filename="db_backup.sqlite3"
+        )
+    return HttpResponse("Base de datos no encontrada", status=404)
+
+
+def db_restore(request):
+    if request.method == 'POST':
+        uploaded_file = request.FILES.get('db_file')
+
+        if uploaded_file and uploaded_file.name.endswith('.sqlite3'):
+            # 🔴 MUY IMPORTANTE:
+            # Cerrar conexiones antes de sobrescribir
+            from django.db import connection
+            connection.close()
+
+            with open(DB_FILE, 'wb+') as destination:
+                for chunk in uploaded_file.chunks():
+                    destination.write(chunk)
+
+            return redirect('modelNewApp:db_panel')
+
+    return HttpResponse("Método no permitido", status=405)

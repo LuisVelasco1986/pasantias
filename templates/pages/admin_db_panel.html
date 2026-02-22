@@ -1,0 +1,22 @@
+{% extends "pages/dashboard.html" %}
+{% load static %}
+
+{% block dashboard_content %}
+
+<h1>Respaldo de Base de Datos</h1>
+
+<h2>Descargar Base Actual</h2>
+<a href="{% url 'modelNewApp:db_download' %}">
+    <button>Descargar Base de Datos</button>
+</a>
+
+<hr>
+
+<h2>Restaurar Base de Datos</h2>
+<form method="post" action="{% url 'modelNewApp:db_restore' %}" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="file" name="db_file" accept=".sqlite3" required>
+    <button type="submit">Restaurar Base</button>
+</form>
+
+{% endblock %}
