@@ -27,16 +27,16 @@
         <div id="visitante-fields" style="display:none;">
             <div class="mb-3">
                 <label for="cedula_visitante" class="form-label">Cédula</label>
-                <input type="text" class="form-control" id="cedula_visitante" name="cedula_visitante"
+                <input type="text" class="form-control" id="cedula_visitante" name="cedula_visitante" {% if data %}value="{{ data.cedula_visitante }}"{% endif %}
                        placeholder="Por favor ingrese cédula...">
             </div>
             <div class="mb-3">
                 <label for="nombre_visitante" class="form-label">Nombre</label>
-                <input type="text" class="form-control" id="nombre_visitante" name="nombre_visitante" placeholder="Por favor ingrese nombre...">
+                <input type="text" class="form-control" id="nombre_visitante" name="nombre_visitante" placeholder="Por favor ingrese nombre..." {% if data %}value="{{ data.nombre_visitante }}"{% endif %}>
             </div>
             <div class="mb-3">
                 <label for="apellido_visitante" class="form-label">Apellido</label>
-                <input type="text" class="form-control" id="apellido_visitante" name="apellido_visitante" placeholder="Por favor ingrese apellido...">
+                <input type="text" class="form-control" id="apellido_visitante" name="apellido_visitante" placeholder="Por favor ingrese apellido..." {% if data %}value="{{ data.apellido_visitante }}"{% endif %}>
             </div>
             <div class="mb-3">
                 <label class="form-label">Departamento</label>
@@ -53,7 +53,7 @@
         </div>
 
         <div class="mb-3 form-check">
-            <input name="visitante" value="checked" type="checkbox" class="form-check-input" id="soy-visitante">
+            <input name="visitante" value="checked" type="checkbox" class="form-check-input" id="soy-visitante" {% if data %}checked{% endif %}>
             <label class="form-check-label" for="soy-visitante">Soy visitante</label>
         </div>
 

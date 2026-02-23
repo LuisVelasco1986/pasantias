@@ -90,6 +90,7 @@ def cambiar_password(request):
 @login_required
 def control(request):
     if request.method == "POST":
+
         tipo = request.POST.get("tipo_ingreso")
 
         if tipo == "PIE":
@@ -105,11 +106,9 @@ def control_pie(request):
     departamentos = Departamento.objects.all().order_by('nombre')
     dict = {"departamentos": departamentos}
     if request.method == "POST":
+
         if "forzar_salida" in request.POST:
             print("Forzar salida")
-            print(request.POST.get("motivo_forzar_salida"))
-            print(request.POST.get("visitante"))
-
             if request.POST.get("visitante"):
                 print(request.POST.get("cedula_visitante"))
                 if Persona.objects.filter(cedula=request.POST.get("cedula_visitante")).exists():
@@ -193,7 +192,7 @@ def control_pie(request):
                                     nombre=request.POST.get("departamento")).first()
                             else:
                                 dict = {"mensaje_error": "Debe seleccionar un departamento.",
-                                        "departamentos": departamentos}
+                                        "departamentos": departamentos, "data": request.POST}
                                 return render(request, "pages/control_pie.html", dict)
                             # registro.departamento_destino =
                             registro.fecha_hora = datetime.now()
@@ -219,7 +218,7 @@ def control_pie(request):
                                 nombre=request.POST.get("departamento")).first()
                         else:
                             dict = {"mensaje_error": "Debe seleccionar un departamento.",
-                                    "departamentos": departamentos}
+                                    "departamentos": departamentos, "data": request.POST}
                             return render(request, "pages/control_pie.html", dict)
                         # registro.departamento_destino =
                         registro.fecha_hora = datetime.now()
@@ -431,7 +430,7 @@ def control_vehiculo(request):
                                     nombre=request.POST.get("departamento")).first()
                             else:
                                 dict = {"mensaje_error": "Debe seleccionar un departamento.",
-                                        "departamentos": departamentos, "marcas": marcas, "modelos": modelos}
+                                        "departamentos": departamentos, "marcas": marcas, "modelos": modelos, "data": request.POST}
                                 return render(request, "pages/control_vehiculo.html", dict)
                             # registro.departamento_destino =
                             registro.fecha_hora = datetime.now()
@@ -469,7 +468,7 @@ def control_vehiculo(request):
                                 nombre=request.POST.get("departamento")).first()
                         else:
                             dict = {"mensaje_error": "Debe seleccionar un departamento.",
-                                    "departamentos": departamentos, "marcas": marcas, "modelos": modelos}
+                                    "departamentos": departamentos, "marcas": marcas, "modelos": modelos, "data": request.POST}
                             return render(request, "pages/control_vehiculo.html", dict)
                         # registro.departamento_destino =
                         registro.fecha_hora = datetime.now()
@@ -1288,16 +1287,10 @@ def estadisticos(request):
         rango_dias = (date.fromisoformat(hasta) - date.fromisoformat(desde)).days + 1
     else:
         primer_registro = registros.order_by("fecha_hora").first()
-        print("Primer registro")
-        print(primer_registro)
 
         if primer_registro:
-            # fecha_inicio = primer_registro.fecha_hora.date()
             fecha_inicio = localtime(primer_registro.fecha_hora).date()
-            print(fecha_inicio)
-            # fecha_fin = date.today()
             fecha_fin = localtime(timezone.now()).date()
-            print(fecha_fin)
             dias_periodo = (fecha_fin - fecha_inicio).days + 1
             rango_dias = dias_periodo
         else:
@@ -1307,8 +1300,6 @@ def estadisticos(request):
     promedio_periodo = round(
         total_ingresos / dias_periodo, 2
     ) if dias_periodo > 0 else 0
-    print(total_ingresos)
-    print(dias_periodo)
     # ---------------------------------
     #     Nuevo dia con más ingresos
     # ---------------------------------

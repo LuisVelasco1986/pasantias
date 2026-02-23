@@ -126,6 +126,15 @@ const apellidoInput = document.getElementById("apellido_visitante");
 const cedulaInput = document.getElementById("cedula_visitante");
 const codigoInput = document.getElementById("codigo_empleado");
 
+if (visitanteCheckbox && visitanteCheckbox.checked) {
+    visitanteFields.style.display = "block";
+    nombreInput.required = true;
+    apellidoInput.required = true;
+    cedulaInput.required = true;
+    codigoInput.required = false;
+    empleadoFields.style.display = "none";
+}
+
 if (visitanteCheckbox) {
     visitanteCheckbox.addEventListener("change", () => {
         if (visitanteCheckbox.checked) {
