@@ -147,6 +147,10 @@ body, html {
     filter: brightness(0) invert(1);
 }
 
+.active .dashboardIcon {
+    filter: brightness(0) invert(1);
+}
+
 
 
 /* ------------------  Sale de quitar los paddings del navegador ------------------- */

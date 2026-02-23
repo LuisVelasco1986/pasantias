@@ -13,7 +13,7 @@ import datetime
 from datetime import datetime, date
 
 from django.utils import timezone
-from django.utils.timezone import now, timedelta, localdate, make_aware
+from django.utils.timezone import now, timedelta, localdate, make_aware, localtime
 
 from django.http import JsonResponse
 from .models import Persona
@@ -1258,10 +1258,6 @@ def estadisticos(request):
     # -------------------------
     if tipo:
         registros = registros.filter(id_persona__id_tipo__nombre_tipo=tipo)
-    # if tipo == "empleado":
-    #     registros = registros.filter(id_persona__codigo_p00__isnull=False)
-    # elif tipo == "visitante":
-    #     registros = registros.filter(id_persona__codigo_p00__isnull=True)
 
     # -------------------------
     # TOTAL INGRESOS
@@ -1292,79 +1288,53 @@ def estadisticos(request):
         rango_dias = (date.fromisoformat(hasta) - date.fromisoformat(desde)).days + 1
     else:
         primer_registro = registros.order_by("fecha_hora").first()
+        print("Primer registro")
+        print(primer_registro)
 
         if primer_registro:
-            fecha_inicio = primer_registro.fecha_hora.date()
-            fecha_fin = date.today()
+            # fecha_inicio = primer_registro.fecha_hora.date()
+            fecha_inicio = localtime(primer_registro.fecha_hora).date()
+            print(fecha_inicio)
+            # fecha_fin = date.today()
+            fecha_fin = localtime(timezone.now()).date()
+            print(fecha_fin)
             dias_periodo = (fecha_fin - fecha_inicio).days + 1
             rango_dias = dias_periodo
         else:
             dias_periodo = 0
             rango_dias = 0
 
-    print(total_ingresos)
-    print(dias_periodo)
     promedio_periodo = round(
         total_ingresos / dias_periodo, 2
     ) if dias_periodo > 0 else 0
-    print(promedio_periodo)
+    print(total_ingresos)
+    print(dias_periodo)
+    # ---------------------------------
+    #     Nuevo dia con más ingresos
+    # ---------------------------------
 
-    # -----------------------------
-    # DIA CON MAS INGRESOS
-    # -----------------------------
-    # Agrupar por día
-    ingresos_por_dia = list(
+    dia_pico_data = (
         registros
         .annotate(dia=TruncDate('fecha_hora'))
         .values('dia')
         .annotate(cantidad=Count('id'))
-        .order_by('dia')
+        .order_by('-cantidad')
+        .first()
     )
 
-    if ingresos_por_dia:
-        dia_mas_ingresos = ingresos_por_dia[0]['dia'].strftime('%d/%m/%Y')
-        cantidad_mas_ingresos = ingresos_por_dia[0]['cantidad']
+    if dia_pico_data:
+        dia_mas_ingresos = dia_pico_data['dia'].strftime('%d/%m/%Y')
+        cantidad = dia_pico_data['cantidad']
+
+        if cantidad >= 1000:
+            cantidad_mas_ingresos_fmt = (
+                f"{cantidad / 1000:.1f}k"
+            ).replace(".0k", "k")
+        else:
+            cantidad_mas_ingresos_fmt = str(cantidad)
     else:
         dia_mas_ingresos = '-'
-        cantidad_mas_ingresos = 0
-
-    # Formatear cantidad_mas_ingresos
-    if cantidad_mas_ingresos >= 1000:
-        cantidad_mas_ingresos_fmt = f"{cantidad_mas_ingresos / 1000:.1f}k"
-        # opcional: quitar decimal si es entero
-        if cantidad_mas_ingresos_fmt.endswith(".0k"):
-            cantidad_mas_ingresos_fmt = cantidad_mas_ingresos_fmt.replace(".0k", "k")
-    else:
-        cantidad_mas_ingresos_fmt = str(cantidad_mas_ingresos)
-
-    # Convertir dia a string en formato DD/MM para JS
-    for r in ingresos_por_dia:
-        r['dia'] = r['dia'].strftime('%d/%m')
-
-    # --------------------------------
-    # HORA PICO
-    # --------------------------------
-    # HORA PICO
-    # ingresos_por_hora = (
-    #     registros
-    #     .annotate(hora=TruncHour('fecha_hora'))
-    #     .values('hora')
-    #     .annotate(cantidad=Count('id'))
-    #     .order_by('-cantidad')
-    # )
-    #
-    # if ingresos_por_hora:
-    #     hora_pico = ingresos_por_hora[0]['hora'].strftime('%I:%M %p')
-    #
-    #     # Formatear cantidad grande
-    #     cantidad_hora_pico = ingresos_por_hora[0]['cantidad']
-    #     if cantidad_hora_pico >= 1000:
-    #         cantidad_hora_pico_fmt = f"{round(cantidad_hora_pico / 1000)}k"
-    #     else:
-    #         cantidad_hora_pico_fmt = str(cantidad_hora_pico)
-    # else:
-    #     hora_pico = '-'
-    #     cantidad_hora_pico_fmt = '0'
+        cantidad_mas_ingresos_fmt = '0'
 
     # ----------------------------------------------------------------------------
     #     Nueva hora pico
@@ -1422,18 +1392,6 @@ def estadisticos(request):
             r['periodo'] = f"{inicio_semana.strftime('%d/%m')} - {fin_semana.strftime('%d/%m')}"
         else:  # TruncMonth
             r['periodo'] = r['periodo'].strftime('%b %Y')  # ej: Ene 2026
-
-    # Para gráfico ingresos por hora
-    # ingresos_por_hora = list(
-    #     registros
-    #     .annotate(hora_num=ExtractHour('fecha_hora'))
-    #     .values('hora_num')
-    #     .annotate(cantidad=Count('id'))
-    #     .order_by('hora_num')  # 👈 ahora sí, 0 → 23
-    # )
-    # for r in ingresos_por_hora:
-    #     hora = r['hora_num']
-    #     r['hora_label'] = datetime.strptime(str(hora), "%H").strftime("%I %p")
 
     ingresos_por_hora = list(
         datos_hora.order_by('hora_num')
@@ -1514,7 +1472,7 @@ def estadisticos(request):
         "cantidad_mas_ingresos": cantidad_mas_ingresos_fmt,
         "hora_pico": hora_pico,
         "cantidad_hora_pico": cantidad_hora_pico,
-        "ingresos_por_dia": ingresos_por_dia,
+        # "ingresos_por_dia": ingresos_por_dia,
         "fecha_inicio": fecha_inicio,
         "fecha_fin": fecha_fin,
         "ingresos_por_periodo": list(ingresos_por_periodo),
