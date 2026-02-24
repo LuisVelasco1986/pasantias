@@ -35,10 +35,12 @@ from reportlab.pdfbase.pdfmetrics import stringWidth
 
 import csv
 
-
 class HomeView(View):
     def get(self, request):
-        return render(request, "pages/index.html")
+        if request.user.is_authenticated:
+            return redirect("modelNewApp:control")
+        else:
+            return render(request, "pages/index.html")
 
 
 def login_view(request):
@@ -52,6 +54,8 @@ def login_view(request):
         user = authenticate(request, username=email, password=password)
 
         if user is not None:
+            print("Persona")
+            print(user.persona)
             login(request, user)
             if user.debe_cambiar_password:
                 return redirect('modelNewApp:cambiar_password')

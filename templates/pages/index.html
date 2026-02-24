@@ -22,9 +22,6 @@
         </div>
         <div class="mb-3"><a href="{% url 'modelNewApp:recuperar_contraseña' %}">Olvidé mi contraseña</a></div>
 
-        <div class="d-flex justify-content-center">
-            <button type="submit" class="btn btn-primary">Iniciar sesión</button>
-        </div>
         {% if messages %}
         {% for message in messages %}
         <div class="alert alert-danger mt-3 alert-auto-close">
@@ -32,6 +29,11 @@
         </div>
         {% endfor %}
         {% endif %}
+
+        <div class="d-flex justify-content-center">
+            <button type="submit" class="btn btn-primary">Iniciar sesión</button>
+        </div>
+
 
     </form>
 </div>
