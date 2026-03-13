@@ -12,19 +12,6 @@
 
         <h4 class="text-center mb-4">Seleccione tipo de ingreso/salida</h4>
 
-        {% if mensaje_error %}
-        <div class="alert alert-danger mt-2 alert-auto-close">{{ mensaje_error }}</div>
-        {% elif mensaje %}
-        <div class="alert alert-info mt-2 alert-auto-close">{{ mensaje }}</div>
-        {% endif %}
-
-        {% if messages %}
-        {% for message in messages %}
-        <div class="alert alert-danger mt-3 alert-auto-close">
-            {{ message }}
-        </div>
-        {% endfor %}
-        {% endif %}
 
         <div class="d-flex justify-content-center gap-4">
             <button name="tipo_ingreso" value="PIE" class="btn btn-primary ingreso-salida-control">
@@ -35,6 +22,20 @@
                 En vehículo
             </button>
         </div>
+
+        {% if mensaje_error %}
+        <div class="alert alert-danger mt-4 alert-auto-close">{{ mensaje_error }}</div>
+        {% elif mensaje %}
+        <div class="alert alert-info mt-4 alert-auto-close">{{ mensaje }}</div>
+        {% endif %}
+
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-danger mt-4 alert-auto-close">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
     </form>
 </div>
 {% endblock content %}

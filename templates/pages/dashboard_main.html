@@ -44,7 +44,7 @@
 </div>
 <div class="mt-4 sectionTitle">Personas dentro</div>
 <div class="px-3">
-    <table class="table table-hover">
+    <table class="table table-hover dashboard-table">
         <thead>
         <tr>
             <th>
@@ -76,6 +76,38 @@
         {% endfor %}
         </tbody>
     </table>
+</div>
+
+<div class="mt-5 sectionTitle">Vehículos dentro</div>
+
+<div class="px-3">
+<table class="table table-hover dashboard-table">
+    <thead>
+        <tr>
+            <th>Placa</th>
+            <th>Código</th>
+            <th>Marca</th>
+            <th>Modelo</th>
+            <th>Hora de entrada</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for registro in vehiculos_dentro %}
+        <tr class="clickable-row" data-href="{% url 'modelNewApp:vehiculos_detalles' registro.vehiculo.id %}">
+            <td>{{ registro.vehiculo.placa }}</td>
+            <td>{{ registro.vehiculo.codigo }}</td>
+            <td>{{ registro.vehiculo.marca }}</td>
+            <td>{{ registro.vehiculo.modelo }}</td>
+            <td>{{ registro.fecha_hora|date:"d/m/y, h:i A" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="5">No hay vehículos dentro del edificio.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 </div>
 
 <div class="mt-4 sectionTitle">Ingresos por día (Últimos 7 días)</div>
