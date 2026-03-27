@@ -122,7 +122,7 @@ class RegistroAcceso(models.Model):
         blank=True
     )
 
-    observacion = models.CharField(max_length=100, default="Usuario olvidó marcar salida el día anterior.")
+    observacion = models.CharField(max_length=100, default="")
 
     id_persona = models.ForeignKey(Persona, on_delete=models.CASCADE, related_name='registros')
     fecha_hora = models.DateTimeField(blank=True, null=True)

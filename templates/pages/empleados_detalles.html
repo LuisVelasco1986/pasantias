@@ -208,6 +208,7 @@
                     <th>Fecha y hora</th>
                     <th>Movimiento</th>
                     <th>Departamento</th>
+                    <th>Nota</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -228,6 +229,8 @@
                         {% endif %}
                     </td>
                     <td>{% if acceso.departamento_destino %}{{ acceso.departamento_destino.nombre }}{% else %}—{% endif %}
+                    </td>
+                    <td>{% if acceso.observacion %}{{ acceso.observacion }}{% else %}—{% endif %}
                     </td>
                 </tr>
                 {% empty %}
