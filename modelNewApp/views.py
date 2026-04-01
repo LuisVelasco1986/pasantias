@@ -804,7 +804,7 @@ def dashboard(request):
         if ultimo.tipo_movimiento == 'INGRESO':
             dentro_ids.append(ultimo.id)
 
-    dentro = RegistroAcceso.objects.filter(id__in=dentro_ids).order_by("fecha_hora")
+    dentro = RegistroAcceso.objects.filter(id__in=dentro_ids).order_by("-fecha_hora")
 
     # ─────────────────────────────────────────────
     # Ingresos y salidas de HOY
