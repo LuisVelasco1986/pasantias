@@ -1214,22 +1214,40 @@ def empleados_editar(request, id):
                             usuario.email = request.POST.get('email')
                             usuario.username = request.POST.get('email')
                             usuario.save()
-                            send_mail(
-                                'Acceso al sistema',
-                                f'''
+
+                            html_content = f"""
                                     Hola {usuario.first_name},
 
-                                    Se ha cambiar su dirección de correo electrónico.
+                                    Se ha cambiado su dirección de correo electrónico.
 
                                     Usuario: {usuario.email}
                                     Contraseña temporal: {password_temporal}
 
                                     Por seguridad deberás cambiar esta contraseña al iniciar sesión.
-                                    ''',
-                                'no-reply@sistema.com',
-                                [usuario.email],
-                                fail_silently=False,
+                                    """
+
+                            enviar_correo(
+                                usuario.email,
+                                "Acceso al sistema",
+                                html_content
                             )
+
+                            # send_mail(
+                            #     'Acceso al sistema',
+                            #     f'''
+                            #         Hola {usuario.first_name},
+                            #
+                            #         Se ha cambiar su dirección de correo electrónico.
+                            #
+                            #         Usuario: {usuario.email}
+                            #         Contraseña temporal: {password_temporal}
+                            #
+                            #         Por seguridad deberás cambiar esta contraseña al iniciar sesión.
+                            #         ''',
+                            #     'no-reply@sistema.com',
+                            #     [usuario.email],
+                            #     fail_silently=False,
+                            # )
                     else:
                         usuario = Usuario()
                         usuario.email = request.POST.get('email')
@@ -1247,22 +1265,39 @@ def empleados_editar(request, id):
                         usuario.save()
                         usuario.roles.set(roles_ids)
 
-                        send_mail(
-                            'Acceso al sistema',
-                            f'''
-                                Hola {usuario.first_name},
+                        html_content = f"""
+                                        Hola {usuario.first_name},
 
-                                Se ha creado una cuenta para ti.
+                                        Se ha creado una cuenta para ti.
+        
+                                        Usuario: {usuario.email}
+                                        Contraseña temporal: {password_temporal}
+        
+                                        Por seguridad deberás cambiar esta contraseña al iniciar sesión.
+                                        """
 
-                                Usuario: {usuario.email}
-                                Contraseña temporal: {password_temporal}
-
-                                Por seguridad deberás cambiar esta contraseña al iniciar sesión.
-                                ''',
-                            'no-reply@sistema.com',
-                            [usuario.email],
-                            fail_silently=False,
+                        enviar_correo(
+                            usuario.email,
+                            "Acceso al sistema",
+                            html_content
                         )
+
+                        # send_mail(
+                        #     'Acceso al sistema',
+                        #     f'''
+                        #         Hola {usuario.first_name},
+                        #
+                        #         Se ha creado una cuenta para ti.
+                        #
+                        #         Usuario: {usuario.email}
+                        #         Contraseña temporal: {password_temporal}
+                        #
+                        #         Por seguridad deberás cambiar esta contraseña al iniciar sesión.
+                        #         ''',
+                        #     'no-reply@sistema.com',
+                        #     [usuario.email],
+                        #     fail_silently=False,
+                        # )
                 else:
                     messages.error(request, "Debe seleccionar al menos un rol.")
                     roles = Rol.objects.all().order_by('nombre_rol')
@@ -2472,9 +2507,8 @@ def recuperar_contraseña(request):
             usuario.set_password(password_temporal)
             usuario.debe_cambiar_password = True
             usuario.save()
-            send_mail(
-                'Acceso al sistema',
-                f'''
+
+            html_content = f"""
                             Hola {usuario.first_name},
     
                             Se ha cambiar su dirección de correo electrónico.
@@ -2483,11 +2517,30 @@ def recuperar_contraseña(request):
                             Contraseña temporal: {password_temporal}
     
                             Por seguridad deberás cambiar esta contraseña al iniciar sesión.
-                            ''',
-                'no-reply@sistema.com',
-                [request.POST['email']],
-                fail_silently=False,
+                            """
+
+            enviar_correo(
+                usuario.email,
+                "Acceso al sistema",
+                html_content
             )
+
+            # send_mail(
+            #     'Acceso al sistema',
+            #     f'''
+            #                 Hola {usuario.first_name},
+            #
+            #                 Se ha cambiar su dirección de correo electrónico.
+            #
+            #                 Usuario: {usuario.email}
+            #                 Contraseña temporal: {password_temporal}
+            #
+            #                 Por seguridad deberás cambiar esta contraseña al iniciar sesión.
+            #                 ''',
+            #     'no-reply@sistema.com',
+            #     [request.POST['email']],
+            #     fail_silently=False,
+            # )
             return redirect('modelNewApp:home')
         else:
             messages.error(request, "No existe un usuario con ese correo.")
