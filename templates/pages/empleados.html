@@ -105,6 +105,9 @@
             </a>
         </th>
         <th>
+            Tipo
+        </th>
+        <th>
             Estado
             <a href="?{% if orden_actual == 'estado' %}{% querystring request.GET 'orden' '-estado' %}{% else %}{% querystring request.GET 'orden' 'estado' %}{% endif %}"
                class="sort-icon

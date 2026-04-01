@@ -3,6 +3,7 @@
     <td>{{ empleado.nombres }} {{ empleado.apellidos }}</td>
     <td>{{ empleado.fecha_registro|date:"d/m/Y" }}</td>
     <td>{% if empleado.codigo_p00%}{{ empleado.codigo_p00 }}{% else %}-{% endif %}</td>
+    <td>{{ empleado.id_tipo }}</td>
     <td>
         <div class="{% if empleado.activo %}personaActiva{% else %}personaInactiva{% endif %}">{% if empleado.activo %}Activo{% else %}Inactivo{% endif %}
         </div>
