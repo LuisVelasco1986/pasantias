@@ -33,6 +33,8 @@ from django.http import HttpResponse
 
 from reportlab.pdfbase.pdfmetrics import stringWidth
 
+from .utils.email import enviar_correo
+
 import csv
 
 class HomeView(View):
@@ -42,6 +44,11 @@ class HomeView(View):
         else:
             return render(request, "pages/index.html")
 
+def privacy(request):
+    return render(request, "pages/privacy.html")
+
+def terms(request):
+    return render(request, "pages/terms.html")
 
 def login_view(request):
     if user_logged_in == True:
@@ -1011,22 +1018,36 @@ def empleados_agregar(request):
                     usuario.save()
                     usuario.roles.set(roles_ids)
 
-                    send_mail(
-                        'Acceso al sistema',
-                        f'''
-                    Hola {usuario.first_name},
+                    html_content = f"""
+                    <h3>Hola {usuario.first_name},</h3>
+                    <p>Se ha creado una cuenta para ti.</p>
+                    <p><strong>Usuario:</strong> {usuario.email}</p>
+                    <p><strong>Contraseña temporal:</strong> {password_temporal}</p>
+                    <p>Por seguridad deberás cambiar esta contraseña al iniciar sesión.</p>
+                    """
 
-                    Se ha creado una cuenta para ti.
-
-                    Usuario: {usuario.email}
-                    Contraseña temporal: {password_temporal}
-
-                    Por seguridad deberás cambiar esta contraseña al iniciar sesión.
-                    ''',
-                        'no-reply@sistema.com',
-                        [usuario.email],
-                        fail_silently=False,
+                    enviar_correo(
+                        usuario.email,
+                        "Acceso al sistema",
+                        html_content
                     )
+
+                    # send_mail(
+                    #     'Acceso al sistema',
+                    #     f'''
+                    # Hola {usuario.first_name},
+                    #
+                    # Se ha creado una cuenta para ti.
+                    #
+                    # Usuario: {usuario.email}
+                    # Contraseña temporal: {password_temporal}
+                    #
+                    # Por seguridad deberás cambiar esta contraseña al iniciar sesión.
+                    # ''',
+                    #     'no-reply@sistema.com',
+                    #     [usuario.email],
+                    #     fail_silently=False,
+                    # )
 
                 else:
                     messages.error(request, "Debe seleccionar al menos un rol.")

@@ -205,3 +205,7 @@ EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL")
 
+from decouple import config
+
+# SendGrid API Key para PythonAnywhere
+SENDGRID_API_KEY = config('SENDGRID_API_KEY', default='')

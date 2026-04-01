@@ -39,4 +39,6 @@ urlpatterns = [
     path('db-download/', db_download, name='db_download'),
     path('db-restore/', db_restore, name='db_restore'),
     path('db-panel/', db_panel, name='db_panel'),
+    path('privacy/', privacy, name='privacy'),
+    path('terms/', terms, name='terms'),
 ]
