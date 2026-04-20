@@ -9,7 +9,7 @@
 <div class="d-flex justify-content-center align-items-center" style="min-height: calc(100vh - 176px);">
     <!-- min-height ajusta la altura: 100vh menos navbar + footer -->
 
-    <form method="post" action="#" class="" id="movimientoForm">
+    <form method="post" action="#" id="movimientoForm" style="flex-shrink: 0; width: 100%; max-width: 800px;">
         {% csrf_token %}
         <div class="d-flex gap-3">
             <a class="" href="{% url 'modelNewApp:control' %}">
@@ -129,19 +129,22 @@
                 </div>
             </div>
             <div class="col-12">
-                {% if mensaje_error %}
-                <div class="alert alert-danger mt-2 alert-auto-close">{{ mensaje_error }}</div>
-                {% elif mensaje %}
-                <div class="alert alert-info mt-2 alert-auto-close">{{ mensaje }}</div>
-                {% endif %}
+                <div class="">
+                    {% if mensaje_error %}
+                    <div class="alert alert-danger mt-2 alert-auto-close">{{ mensaje_error }}</div>
+                    {% elif mensaje %}
+                    <div class="alert alert-info mt-2 alert-auto-close">{{ mensaje }}</div>
+                    {% endif %}
 
-                {% if messages %}
-                {% for message in messages %}
-                <div class="alert alert-danger mt-3 alert-auto-close">
-                    {{ message }}
+                    {% if messages %}
+                    {% for message in messages %}
+                    <div class="alert alert-danger mt-3 alert-auto-close">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                    {% endif %}
                 </div>
-                {% endfor %}
-                {% endif %}
+
                 <div class="d-flex justify-content-center gap-3">
                     <button id="btnEntrada" name="ingreso" value="ingreso" type="submit"
                             class="btn btn-primary ingreso-salida">Ingreso

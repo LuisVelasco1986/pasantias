@@ -173,7 +173,7 @@ def control_pie(request):
                         if request.POST.get("ingreso"):
                             dict = {
                                 "mensaje_error": "No puede registrar ingreso porque tiene un registro abierto actualmente.",
-                                "departamentos": departamentos}
+                                "departamentos": departamentos, "data": request.POST}
                         else:
                             if request.POST.get("nombre_visitante") != visitante.nombres:
                                 visitante.nombres = request.POST.get("nombre_visitante")
@@ -211,7 +211,7 @@ def control_pie(request):
                             dict = {"mensaje": "Ha registrado su entrada efectivamente.", "departamentos": departamentos}
                         else:
                             dict = {"mensaje_error": "No puede registrar salida porque no tiene registro de entrada.",
-                                    "departamentos": departamentos}
+                                    "departamentos": departamentos, "data": request.POST}
                 else:
                     if request.POST.get("ingreso"):
                         empleado = Persona()
@@ -237,7 +237,7 @@ def control_pie(request):
                         dict = {"mensaje": "Ha registrado su entrada efectivamente.", "departamentos": departamentos}
                     else:
                         dict = {"mensaje_error": "No puede registrar salida porque no tiene registro de entrada.",
-                                "departamentos": departamentos}
+                                "departamentos": departamentos, "data": request.POST}
             else:
                 empleado = Persona.objects.filter(codigo_p00=request.POST.get("codigo")).first()
                 if empleado:
@@ -246,7 +246,7 @@ def control_pie(request):
                         if request.POST.get("ingreso"):
                             dict = {
                                 "mensaje_error": "No puede registrar ingreso porque tiene un registro abierto actualmente.",
-                                "departamentos": departamentos}
+                                "departamentos": departamentos, "data": request.POST}
                         else:
                             registro_abierto = RegistroAcceso()
                             registro_abierto.id_persona = empleado
@@ -265,7 +265,7 @@ def control_pie(request):
                             dict = {"mensaje": "Ha registrado su entrada efectivamente.", "departamentos": departamentos}
                         else:
                             dict = {"mensaje_error": "No puede registrar salida porque no tiene registro de entrada.",
-                                    "departamentos": departamentos}
+                                    "departamentos": departamentos, "data": request.POST}
                 else:
                     dict = {"mensaje_error": "No existe un empleado con ese código", "departamentos": departamentos}
     return render(request, "pages/control_pie.html", dict)
@@ -372,7 +372,11 @@ def control_vehiculo(request):
         if "forzar_salida" in request.POST:
 
             if not persona_dentro:
-                context["mensaje_error"] = "La persona no se encuentra dentro del edificio."
+                context = {
+                    "mensaje_error": "La persona no se encuentra dentro del edificio.", "data": request.POST, "departamentos": departamentos,
+                    "marcas": marcas,
+                    "modelos": modelos
+                }
                 return render(request, "pages/control_vehiculo.html", context)
 
             registro = RegistroAcceso.objects.create(
@@ -393,11 +397,17 @@ def control_vehiculo(request):
         if "ingreso" in request.POST:
 
             if persona_dentro:
-                context["mensaje_error"] = "No puede registrar ingreso porque la persona ya está dentro."
+                context= {
+                    "mensaje_error": "No puede registrar ingreso porque la persona ya está dentro.", "data": request.POST, "departamentos": departamentos,
+                    "marcas": marcas,
+                    "modelos": modelos
+                          }
                 return render(request, "pages/control_vehiculo.html", context)
 
             if vehiculo_dentro:
-                context["mensaje_error"] = "No puede registrar ingreso porque el vehículo ya está dentro."
+                context = {"mensaje_error": "No puede registrar ingreso porque el vehículo ya está dentro.", "data": request.POST, "departamentos": departamentos,
+                    "marcas": marcas,
+                    "modelos": modelos}
                 return render(request, "pages/control_vehiculo.html", context)
 
             registro = RegistroAcceso()
@@ -433,11 +443,15 @@ def control_vehiculo(request):
         if "salida" in request.POST:
 
             if not persona_dentro:
-                context["mensaje_error"] = "No puede registrar salida porque la persona no está dentro."
+                context = {"mensaje_error": "No puede registrar salida porque la persona no está dentro.", "data": request.POST, "departamentos": departamentos,
+                    "marcas": marcas,
+                    "modelos": modelos}
                 return render(request, "pages/control_vehiculo.html", context)
 
             if not vehiculo_dentro:
-                context["mensaje_error"] = "No puede registrar salida porque el vehículo no está dentro."
+                context = {"mensaje_error": "No puede registrar salida porque el vehículo no está dentro.", "data": request.POST, "departamentos": departamentos,
+                    "marcas": marcas,
+                    "modelos": modelos}
                 return render(request, "pages/control_vehiculo.html", context)
 
             RegistroAcceso.objects.create(
@@ -1720,6 +1734,57 @@ def estadisticos(request):
         .order_by('-cantidad')
     )
 
+    # ---------------------------------------
+    # INGRESOS DE VEHÍCULOS (por período)
+    # ---------------------------------------
+    vehiculos_registros = registros.exclude(vehiculo__isnull=True)
+
+    vehiculos_por_periodo = (
+        vehiculos_registros
+        .annotate(periodo=trunc)
+        .values('periodo')
+        .annotate(cantidad=Count('id'))
+        .order_by('periodo')
+    )
+
+    for r in vehiculos_por_periodo:
+        if isinstance(trunc, TruncDay):
+            r['periodo'] = r['periodo'].strftime('%d/%m')
+        elif isinstance(trunc, TruncWeek):
+            inicio_semana = r['periodo']
+            fin_semana = inicio_semana + timedelta(days=6)
+            r['periodo'] = f"{inicio_semana.strftime('%d/%m')} - {fin_semana.strftime('%d/%m')}"
+        else:
+            r['periodo'] = r['periodo'].strftime('%b %Y')
+
+    # ---------------------------------------
+    # VEHÍCULOS DENTRO
+    # ---------------------------------------
+    ultimos_movimientos_vehiculos = (
+        RegistroAcceso.objects
+        .exclude(vehiculo__isnull=True)
+        .values('vehiculo')
+        .annotate(ultima_fecha=Max('fecha_hora'))
+    )
+
+    vehiculos_dentro = RegistroAcceso.objects.filter(
+        tipo_movimiento='INGRESO',
+        id__in=[
+            RegistroAcceso.objects.filter(
+                vehiculo=m['vehiculo'],
+                fecha_hora=m['ultima_fecha']
+            ).values('id')[:1]
+            for m in ultimos_movimientos_vehiculos
+        ]
+    )
+
+    vehiculos_dentro_por_marca = (
+        vehiculos_dentro
+        .values(nombre=F('vehiculo__marca__nombre'))
+        .annotate(cantidad=Count('id'))
+        .order_by('-cantidad')
+    )
+
     context = {
         "tipos": tipos,
         "total_ingresos": total_ingresos,
@@ -1738,6 +1803,8 @@ def estadisticos(request):
         "detalle_accesos": detalle_accesos,
         "ingresos_por_departamento": list(ingresos_por_departamento),
         "personas_dentro_por_departamento": list(personas_dentro_por_departamento),
+        "vehiculos_por_periodo": list(vehiculos_por_periodo),
+        "vehiculos_dentro_por_marca": list(vehiculos_dentro_por_marca),
     }
 
     return render(request, "pages/estadisticos.html", context)

@@ -173,6 +173,34 @@
 
     {{ personas_dentro_por_departamento|json_script:"personas-dep-data" }}
 
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="mb-3">Ingresos de vehículos</h5>
+                <div style="height: 300px;">
+                    <canvas id="vehiculosPeriodoChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{ vehiculos_por_periodo|json_script:"vehiculos-periodo-data" }}
+
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="mb-3">Vehículos dentro (por marca)</h5>
+                <div style="height: 300px;">
+                    <canvas id="vehiculosDentroChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{ vehiculos_dentro_por_marca|json_script:"vehiculos-dentro-data" }}
+
+
+
 
 
 </div>

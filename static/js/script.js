@@ -604,3 +604,72 @@ function activarFilasClick() {
 }
 
 document.addEventListener("DOMContentLoaded", activarFilasClick);
+
+//Ingreso de vehiculos
+
+document.addEventListener("DOMContentLoaded", () => {
+    const el = document.getElementById("vehiculos-periodo-data");
+    if (!el) return;
+
+    const data = JSON.parse(el.textContent);
+
+    const labels = data.map(i => i.periodo);
+    const values = data.map(i => i.cantidad);
+
+    const ctx = document.getElementById("vehiculosPeriodoChart").getContext("2d");
+
+    new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels,
+            datasets: [{
+                label: "Vehículos",
+                data: values,
+                backgroundColor: "rgba(255, 159, 64, 0.6)"
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+    const el = document.getElementById("vehiculos-dentro-data");
+    if (!el) return;
+
+    const data = JSON.parse(el.textContent);
+
+    const labels = data.map(i => i.nombre);
+    const values = data.map(i => i.cantidad);
+
+    const ctx = document.getElementById("vehiculosDentroChart").getContext("2d");
+
+    new Chart(ctx, {
+        type: "pie",
+        data: {
+            labels,
+            datasets: [{
+                data: values,
+                backgroundColor: [
+                    "#FF9F40",
+                    "#FFCD56",
+                    "#4BC0C0",
+                    "#36A2EB",
+                    "#9966FF"
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: "bottom"
+                }
+            }
+        }
+    });
+});
