@@ -71,13 +71,13 @@
             <h6 class="mb-3">Información de acceso</h6>
 
             <div class="row mb-2">
-                <div class="col-3 labelTitle">Correo</div>
-                <div class="col-9">{{ persona.empleado.email }}</div>
+                <div class="col-1 labelTitle">Correo</div>
+                <div class="col-11">{{ persona.empleado.email }}</div>
             </div>
 
             <div class="row mb-3">
-                <div class="col-3 labelTitle">Roles</div>
-                <div class="col-9">
+                <div class="col-1 labelTitle">Roles</div>
+                <div class="col-11">
                     {% for rol in persona.empleado.roles.all %}
                         <span class="badge bg-light text-dark me-1">
                             {{ rol.nombre_rol }}
