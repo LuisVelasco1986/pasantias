@@ -120,6 +120,23 @@
                 </div>
             </div>
 
+            <div class="col-md-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="reporte" value="vehiculos_detallado" {% if request.GET.reporte == "vehiculos_detallado" %}checked{% endif %}>
+                    <label class="form-check-label">
+                        Accesos de vehículos
+                    </label>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="reporte" value="vehiculos_resumen" {% if request.GET.reporte == "vehiculos_resumen" %}checked{% endif %}>
+                    <label class="form-check-label">
+                        Resumen por vehículo
+                    </label>
+                </div>
+            </div>
 
         </div>
     </div>

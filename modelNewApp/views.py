@@ -1326,9 +1326,13 @@ def vehiculos(request):
     elif orden == "-placa":
         vehiculos = vehiculos.order_by("-placa")
     elif orden == "marca":
-        vehiculos = vehiculos.order_by("marca")
+        vehiculos = vehiculos.order_by("marca__nombre")
     elif orden == "-marca":
-        vehiculos = vehiculos.order_by("-marca")
+        vehiculos = vehiculos.order_by("-marca__nombre")
+    elif orden == "modelo":
+        vehiculos = vehiculos.order_by("modelo__nombre")
+    elif orden == "-modelo":
+        vehiculos = vehiculos.order_by("-modelo__nombre")
 
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         return render(request, 'partials/vehiculos_list.html', {
@@ -1760,10 +1764,14 @@ def reportes(request):
     # -------------------------
     # Query base
     # -------------------------
+    # Query base mejorado
     registros = RegistroAcceso.objects.select_related(
         "id_persona",
         "id_persona__id_tipo",
-        "departamento_destino"
+        "departamento_destino",
+        "vehiculo",
+        "vehiculo__marca",
+        "vehiculo__modelo"
     )
 
     # -------------------------
@@ -1896,6 +1904,65 @@ def reportes(request):
             .annotate(total=Count("id"))
             .order_by("-total")
         )
+
+        # ... (códigos anteriores de accesos, personas, diario, etc.)
+
+    elif tipo_reporte == "vehiculos_detallado":
+        columnas = [
+            "Fecha",
+            "Placa",
+            "Vehículo",
+            "Persona",
+            "Movimiento",
+            "Departamento"
+        ]
+
+        # Filtramos solo los registros que tienen vehículo
+        registros_veh = registros.filter(vehiculo__isnull=False).order_by("-fecha_hora")
+
+        resultados = [
+            {
+                "fecha": r.fecha_hora.strftime("%d/%m/%Y %I:%M %p"),
+                "placa": r.vehiculo.placa,
+                "vehiculo": f"{r.vehiculo.marca.nombre} {r.vehiculo.modelo.nombre}",
+                "persona": f"{r.id_persona.nombres} {r.id_persona.apellidos}",
+                "movimiento": r.get_tipo_movimiento_display(),
+                "departamento": r.departamento_destino.nombre if r.departamento_destino else "—"
+            }
+            for r in registros_veh
+        ]
+
+    elif tipo_reporte == "vehiculos_resumen":
+        columnas = [
+            "Placa",
+            "Marca/Modelo",
+            "Total Movimientos",
+            "Último Acceso"
+        ]
+
+        # Agrupamos por vehículo
+        resultados = [
+            {
+                "placa": r['vehiculo__placa'],
+                "vehiculo": f"{r['vehiculo__marca__nombre']} {r['vehiculo__modelo__nombre']}",
+                "total": r['total'],
+                "ultimo": r['ultimo'].strftime("%d/%m/%Y %I:%M %p") if r['ultimo'] else "—"
+            }
+            for r in (
+                registros
+                .filter(vehiculo__isnull=False)
+                .values(
+                    "vehiculo__placa",
+                    "vehiculo__marca__nombre",
+                    "vehiculo__modelo__nombre"
+                )
+                .annotate(
+                    total=Count("id"),
+                    ultimo=Max("fecha_hora")
+                )
+                .order_by("-total")
+            )
+        ]
 
     paginator = Paginator(resultados, 20)  # 10 filas por página
     page_number = request.GET.get("page")
@@ -2110,14 +2177,20 @@ def exportar_pdf(request, tipo_reporte="accesos"):
     queryset = obtener_queryset_reporte(request)
 
     response = HttpResponse(content_type="application/pdf")
-    response["Content-Disposition"] = "attachment; filename=reporte_accesos.pdf"
+    filename = f"reporte_{tipo_reporte}.pdf"
+    response["Content-Disposition"] = f"attachment; filename={filename}"
 
     doc = SimpleDocTemplate(response, pagesize=A4)
     elementos = []
 
-    # Tabla: encabezados
+    # Variables para filtros (usadas en reportes con agregación manual)
+    desde = request.GET.get("desde")
+    hasta = request.GET.get("hasta")
+    tipo = request.GET.get("tipo")
+    departamento = request.GET.get("departamento")
+
     # ---------------------------
-    # Encabezados y filas
+    # Lógica de datos por reporte
     # ---------------------------
     if tipo_reporte == "accesos":
         columnas = ["Fecha y hora", "Persona", "Tipo", "Movimiento", "Departamento"]
@@ -2131,33 +2204,50 @@ def exportar_pdf(request, tipo_reporte="accesos"):
                 r.departamento_destino.nombre if r.departamento_destino else "-"
             ])
 
+    elif tipo_reporte == "vehiculos_detallado":
+        columnas = ["Fecha", "Placa", "Vehículo", "Persona", "Movimiento"]
+        data = [columnas]
+        # Filtrar solo registros que tengan vehículo asociado
+        qs = queryset.filter(vehiculo__isnull=False).select_related('vehiculo__marca', 'vehiculo__modelo')
+        for r in qs:
+            data.append([
+                r.fecha_hora.strftime("%d/%m/%Y %H:%M"),
+                r.vehiculo.placa,
+                f"{r.vehiculo.marca.nombre} {r.vehiculo.modelo.nombre}",
+                f"{r.id_persona.nombres} {r.id_persona.apellidos}",
+                r.get_tipo_movimiento_display()
+            ])
 
+    elif tipo_reporte == "vehiculos_resumen":
+        columnas = ["Placa", "Marca/Modelo", "Total Movimientos", "Último Acceso"]
+        data = [columnas]
+        qs = queryset.filter(vehiculo__isnull=False).values(
+            "vehiculo__placa",
+            "vehiculo__marca__nombre",
+            "vehiculo__modelo__nombre"
+        ).annotate(
+            total=Count("id"),
+            ultimo=Max("fecha_hora")
+        ).order_by("-total")
+
+        for r in qs:
+            data.append([
+                r['vehiculo__placa'],
+                f"{r['vehiculo__marca__nombre']} {r['vehiculo__modelo__nombre']}",
+                r['total'],
+                r['ultimo'].strftime("%d/%m/%Y %H:%M") if r['ultimo'] else "-"
+            ])
 
     elif tipo_reporte == "personas":
-
         columnas = ["Persona", "Tipo", "Total ingresos", "Último ingreso"]
         data = [columnas]
-
-        # Crear queryset filtrado igual que obtener_queryset_reporte
         qs = RegistroAcceso.objects.filter(tipo_movimiento="INGRESO")
-        desde = request.GET.get("desde")
-        hasta = request.GET.get("hasta")
-        tipo = request.GET.get("tipo")
-        departamento = request.GET.get("departamento")
 
-        if desde:
-            qs = qs.filter(fecha_hora__date__gte=desde)
+        if desde: qs = qs.filter(fecha_hora__date__gte=desde)
+        if hasta: qs = qs.filter(fecha_hora__date__lte=hasta)
+        if tipo: qs = qs.filter(id_persona__id_tipo__nombre_tipo=tipo)
+        if departamento: qs = qs.filter(departamento_destino__nombre=departamento)
 
-        if hasta:
-            qs = qs.filter(fecha_hora__date__lte=hasta)
-
-        if tipo:
-            qs = qs.filter(id_persona__id_tipo__nombre_tipo=tipo)
-
-        if departamento:
-            qs = qs.filter(departamento_destino__nombre=departamento)
-
-        # Ahora sí agregamos por persona
         qs = qs.values(
             "id_persona__nombres",
             "id_persona__apellidos",
@@ -2178,7 +2268,6 @@ def exportar_pdf(request, tipo_reporte="accesos"):
     elif tipo_reporte == "diario":
         columnas = ["Fecha", "Ingresos", "Salidas"]
         data = [columnas]
-
         qs = queryset.values("fecha_hora__date").annotate(
             ingresos=Count("id", filter=models.Q(tipo_movimiento="INGRESO")),
             salidas=Count("id", filter=models.Q(tipo_movimiento="EGRESO"))
@@ -2194,7 +2283,6 @@ def exportar_pdf(request, tipo_reporte="accesos"):
     elif tipo_reporte == "tipo":
         columnas = ["Tipo de persona", "Total ingresos"]
         data = [columnas]
-
         qs = queryset.filter(tipo_movimiento="INGRESO").values(
             "id_persona__id_tipo__nombre_tipo"
         ).annotate(total=Count("id")).order_by("-total")
@@ -2208,7 +2296,6 @@ def exportar_pdf(request, tipo_reporte="accesos"):
     elif tipo_reporte == "departamento":
         columnas = ["Departamento", "Total ingresos"]
         data = [columnas]
-
         qs = queryset.filter(
             tipo_movimiento="INGRESO",
             departamento_destino__isnull=False
@@ -2222,20 +2309,21 @@ def exportar_pdf(request, tipo_reporte="accesos"):
                 r['total']
             ])
 
+    # ---------------------------
+    # Generación de la tabla PDF
+    # ---------------------------
     colWidths = []
     for col_idx in range(len(data[0])):
         max_width = max(stringWidth(str(row[col_idx]), "Helvetica", 10) for row in data)
-        colWidths.append(max_width + 10)
+        colWidths.append(max_width + 15)  # Un poco más de margen
 
     tabla = Table(data, colWidths=colWidths)
-
-    # tabla = Table(data, colWidths=[100, 150, 80, 150])
-
     tabla.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),
         ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
         ("FONT", (0, 0), (-1, 0), "Helvetica-Bold"),
-        ("ALIGN", (2, 1), (2, -1), "CENTER"),
+        ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
     ]))
 
     elementos.append(tabla)
@@ -2256,7 +2344,7 @@ def exportar_excel(request, tipo_reporte="accesos"):
     columnas = []
 
     # ------------------------
-    # Generar encabezados
+    # Generar datos según reporte
     # ------------------------
     if tipo_reporte == "accesos":
         columnas = ["Fecha y hora", "Persona", "Tipo", "Movimiento", "Departamento"]
@@ -2271,10 +2359,43 @@ def exportar_excel(request, tipo_reporte="accesos"):
             for r in queryset
         ]
 
-    elif tipo_reporte == "personas":
+    elif tipo_reporte == "vehiculos_detallado":
+        columnas = ["Fecha y hora", "Placa", "Vehículo", "Persona", "Movimiento"]
+        qs = queryset.filter(vehiculo__isnull=False).select_related('vehiculo__marca', 'vehiculo__modelo')
+        filas = [
+            [
+                r.fecha_hora.strftime("%d/%m/%Y %H:%M"),
+                r.vehiculo.placa,
+                f"{r.vehiculo.marca.nombre} {r.vehiculo.modelo.nombre}",
+                f"{r.id_persona.nombres} {r.id_persona.apellidos}",
+                r.get_tipo_movimiento_display()
+            ]
+            for r in qs
+        ]
 
+    elif tipo_reporte == "vehiculos_resumen":
+        columnas = ["Placa", "Marca/Modelo", "Total Movimientos", "Último Acceso"]
+        qs = queryset.filter(vehiculo__isnull=False).values(
+            "vehiculo__placa",
+            "vehiculo__marca__nombre",
+            "vehiculo__modelo__nombre"
+        ).annotate(
+            total=Count("id"),
+            ultimo=Max("fecha_hora")
+        ).order_by("-total")
+
+        filas = [
+            [
+                r['vehiculo__placa'],
+                f"{r['vehiculo__marca__nombre']} {r['vehiculo__modelo__nombre']}",
+                r['total'],
+                r['ultimo'].strftime("%d/%m/%Y %H:%M") if r['ultimo'] else "-"
+            ]
+            for r in qs
+        ]
+
+    elif tipo_reporte == "personas":
         columnas = ["Persona", "Tipo", "Total ingresos", "Último ingreso"]
-        # Crear filas usando values + annotate igual que la vista previa
         qs = queryset.filter(tipo_movimiento="INGRESO").values(
             "id_persona__nombres",
             "id_persona__apellidos",
@@ -2291,7 +2412,6 @@ def exportar_excel(request, tipo_reporte="accesos"):
                 r['total_ingresos'],
                 r['ultimo_ingreso'].strftime("%d/%m/%Y %H:%M") if r['ultimo_ingreso'] else "-"
             ]
-
             for r in qs
         ]
 
@@ -2349,11 +2469,12 @@ def exportar_excel(request, tipo_reporte="accesos"):
     # ------------------------
     # Ajustar ancho columnas
     # ------------------------
-    for i, col in enumerate(columnas, 1):
-        max_length = max(
-            [len(str(row[i - 1])) for row in filas] + [len(col)]
-        )
-        ws.column_dimensions[get_column_letter(i)].width = max_length + 2
+    if filas:
+        for i, col in enumerate(columnas, 1):
+            max_length = max(
+                [len(str(row[i - 1])) for row in filas] + [len(col)]
+            )
+            ws.column_dimensions[get_column_letter(i)].width = max_length + 2
 
     # ------------------------
     # Devolver archivo
@@ -2361,7 +2482,8 @@ def exportar_excel(request, tipo_reporte="accesos"):
     response = HttpResponse(
         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
-    response["Content-Disposition"] = "attachment; filename=reporte.xlsx"
+    filename = f"reporte_{tipo_reporte}.xlsx"
+    response["Content-Disposition"] = f"attachment; filename={filename}"
     wb.save(response)
     return response
 
@@ -2372,9 +2494,11 @@ def exportar_csv(request, tipo_reporte="accesos"):
     response = HttpResponse(
         content_type="text/csv; charset=utf-8"
     )
-    response["Content-Disposition"] = 'attachment; filename="reporte.csv"'
+    # Nombre de archivo dinámico
+    filename = f"reporte_{tipo_reporte}.csv"
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
 
-    response.write("\ufeff")  # BOM para Excel
+    response.write("\ufeff")  # BOM para compatibilidad con Excel
 
     writer = csv.writer(response)
 
@@ -2386,7 +2510,6 @@ def exportar_csv(request, tipo_reporte="accesos"):
     # ------------------------
     if tipo_reporte == "accesos":
         columnas = ["Fecha y hora", "Persona", "Tipo", "Movimiento", "Departamento"]
-
         filas = [
             [
                 r.fecha_hora.strftime("%d/%m/%Y %H:%M"),
@@ -2396,6 +2519,47 @@ def exportar_csv(request, tipo_reporte="accesos"):
                 r.departamento_destino.nombre if r.departamento_destino else "-"
             ]
             for r in queryset
+        ]
+
+    # ------------------------
+    # ACCESOS VEHÍCULOS DETALLADO
+    # ------------------------
+    elif tipo_reporte == "vehiculos_detallado":
+        columnas = ["Fecha y hora", "Placa", "Vehículo", "Persona", "Movimiento"]
+        qs = queryset.filter(vehiculo__isnull=False).select_related('vehiculo__marca', 'vehiculo__modelo')
+        filas = [
+            [
+                r.fecha_hora.strftime("%d/%m/%Y %H:%M"),
+                r.vehiculo.placa,
+                f"{r.vehiculo.marca.nombre} {r.vehiculo.modelo.nombre}",
+                f"{r.id_persona.nombres} {r.id_persona.apellidos}",
+                r.get_tipo_movimiento_display()
+            ]
+            for r in qs
+        ]
+
+    # ------------------------
+    # RESUMEN POR VEHÍCULO
+    # ------------------------
+    elif tipo_reporte == "vehiculos_resumen":
+        columnas = ["Placa", "Marca/Modelo", "Total Movimientos", "Último Acceso"]
+        qs = queryset.filter(vehiculo__isnull=False).values(
+            "vehiculo__placa",
+            "vehiculo__marca__nombre",
+            "vehiculo__modelo__nombre"
+        ).annotate(
+            total=Count("id"),
+            ultimo=Max("fecha_hora")
+        ).order_by("-total")
+
+        filas = [
+            [
+                r['vehiculo__placa'],
+                f"{r['vehiculo__marca__nombre']} {r['vehiculo__modelo__nombre']}",
+                r['total'],
+                r['ultimo'].strftime("%d/%m/%Y %H:%M") if r['ultimo'] else "-"
+            ]
+            for r in qs
         ]
 
     # ------------------------

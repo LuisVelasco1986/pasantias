@@ -91,9 +91,9 @@
         </th>
         <th>
             Modelo
-            <a href="?{% if orden_actual == 'codigo' %}{% querystring request.GET 'orden' '-codigo' %}{% else %}{% querystring request.GET 'orden' 'codigo' %}{% endif %}"
+            <a href="?{% if orden_actual == 'modelo' %}{% querystring request.GET 'orden' '-modelo' %}{% else %}{% querystring request.GET 'orden' 'modelo' %}{% endif %}"
                class="sort-icon
-               {% if orden_actual == 'codigo' %}asc{% elif orden_actual == '-codigo' %}desc{% endif %}">
+               {% if orden_actual == 'modelo' %}asc{% elif orden_actual == '-modelo' %}desc{% endif %}">
                 <svg width="14" height="14" viewBox="0 0 24 24"
                      fill="none" stroke="currentColor" stroke-width="2"
                      stroke-linecap="round" stroke-linejoin="round">
