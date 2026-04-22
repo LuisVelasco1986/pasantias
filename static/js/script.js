@@ -126,6 +126,47 @@ const apellidoInput = document.getElementById("apellido_visitante");
 const cedulaInput = document.getElementById("cedula_visitante");
 const codigoInput = document.getElementById("codigo_empleado");
 
+const selectDepto = document.getElementById("departamentoSelect");
+
+function actualizarEstadoCampos() {
+    if (visitanteCheckbox.checked) {
+        visitanteFields.style.display = "block";
+        empleadoFields.style.display = "none";
+
+        // Validaciones para visitante
+        nombreInput.required = true;
+        apellidoInput.required = true;
+        cedulaInput.required = true;
+        selectDepto.required = true; // Solo si es entrada
+
+        codigoInput.required = false;
+
+        // NO uses .disabled en los IDs (cedula/codigo) para que viajen al servidor
+        selectDepto.disabled = false;
+    } else {
+        visitanteFields.style.display = "none";
+        empleadoFields.style.display = "block";
+
+        codigoInput.required = true;
+
+        nombreInput.required = false;
+        apellidoInput.required = false;
+        cedulaInput.required = false;
+        selectDepto.required = false;
+
+        // Deshabilitamos solo el select para evitar el error de "not focusable"
+        selectDepto.disabled = true;
+    }
+}
+
+if (visitanteCheckbox) {
+    // Escuchar el cambio
+    visitanteCheckbox.addEventListener("change", actualizarEstadoCampos);
+
+    // Ejecutar al cargar (para cuando la página vuelve con errores)
+    actualizarEstadoCampos();
+}
+
 if (visitanteCheckbox && visitanteCheckbox.checked) {
     visitanteFields.style.display = "block";
     nombreInput.required = true;
@@ -421,7 +462,7 @@ const btnEntrada = document.getElementById("btnEntrada");
 const btnSalida = document.getElementById("btnSalida");
 
 // Antes de enviar el formulario
-if (btnEntrada && visitanteCheckbox.checked) {
+/*if (btnEntrada && visitanteCheckbox.checked) {
     btnEntrada.addEventListener("click", function() {
         // Si se va a hacer Entrada, el select es obligatorio
         select.required = true;
@@ -432,6 +473,23 @@ if (btnSalida && visitanteCheckbox.checked) {
     btnSalida.addEventListener("click", function() {
         // Si se va a hacer Salida, no hace falta seleccionar departamento
         select.required = false;
+    });
+}*/
+
+if (btnEntrada) {
+    btnEntrada.addEventListener("click", function() {
+        if (visitanteCheckbox.checked) {
+            selectDepto.required = true;
+            selectDepto.disabled = false;
+        }
+    });
+}
+
+if (btnSalida) {
+    btnSalida.addEventListener("click", function() {
+        // Al salir, el departamento NO debe ser obligatorio ni bloquear el form
+        selectDepto.required = false;
+        selectDepto.disabled = true; // Esto evita el error de "not focusable"
     });
 }
 

@@ -23,6 +23,7 @@
                 <div id="empleado-fields" class="mb-3">
                     <label for="codigo" class="form-label">Código P00</label>
                     <input name="codigo" type="text" class="form-control" id="codigo_empleado"
+                           value="{{ data.codigo }}"
                            placeholder="Por favor ingrese código P00..." required>
                 </div>
 
@@ -61,8 +62,7 @@
 
                 <div class="mb-3 form-check">
                     <input name="visitante" value="checked" type="checkbox" class="form-check-input" id="soy-visitante"
-                           {% if data %}checked{% endif %}>
-                    <label class="form-check-label" for="soy-visitante">Soy visitante</label>
+                           {% if data.es_visitante %}checked{% endif %}> <label class="form-check-label" for="soy-visitante">Soy visitante</label>
                 </div>
             </div>
             <div class="col-6">
