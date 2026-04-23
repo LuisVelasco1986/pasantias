@@ -12,6 +12,15 @@
     </div>
 </div>
 
+<!-- MENSAJES -->
+{% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-danger mt-3 alert-auto-close">
+        {{ message }}
+    </div>
+    {% endfor %}
+{% endif %}
+
 <div class="mt-5">
     <form class="formAgregarPersona" method="post" action="{% url 'modelNewApp:empleados_agregar' %}" enctype="multipart/form-data">
         {% csrf_token %}
@@ -203,14 +212,7 @@
                 </div>
             </div>
 
-            <!-- MENSAJES -->
-            {% if messages %}
-                {% for message in messages %}
-                <div class="alert alert-danger mt-3 alert-auto-close">
-                    {{ message }}
-                </div>
-                {% endfor %}
-            {% endif %}
+
 
             <!-- BOTÓN -->
             <div class="row mt-4">

@@ -130,32 +130,20 @@ const selectDepto = document.getElementById("departamentoSelect");
 
 function actualizarEstadoCampos() {
     if (visitanteCheckbox.checked) {
-        visitanteFields.style.display = "block";
-        empleadoFields.style.display = "none";
-
-        // Validaciones para visitante
+        // ... (otros campos)
         nombreInput.required = true;
         apellidoInput.required = true;
         cedulaInput.required = true;
-        selectDepto.required = true; // Solo si es entrada
-
+        selectDepto.required = true; // <--- Asegúrate de que esto sea true
         codigoInput.required = false;
-
-        // NO uses .disabled en los IDs (cedula/codigo) para que viajen al servidor
-        selectDepto.disabled = false;
+        // ...
     } else {
-        visitanteFields.style.display = "none";
-        empleadoFields.style.display = "block";
-
+        // ...
         codigoInput.required = true;
-
         nombreInput.required = false;
         apellidoInput.required = false;
         cedulaInput.required = false;
         selectDepto.required = false;
-
-        // Deshabilitamos solo el select para evitar el error de "not focusable"
-        selectDepto.disabled = true;
     }
 }
 
@@ -545,15 +533,30 @@ document.addEventListener("DOMContentLoaded", function () {
 
 document.addEventListener("DOMContentLoaded", function () {
 
-
-
     const btnForzar = document.getElementById("btnForzarSalida");
     const codigoInput = document.getElementById("codigo_empleado");
     const codigoCed = document.getElementById("cedula_visitante");
 
+    const miModalForzarSalida = document.getElementById('forzarSalidaModal');
+    const motivoTextarea = document.getElementById("motivoForzarSalida");
+
+    if (miModalForzarSalida && motivoTextarea) {
+        miModalForzarSalida.addEventListener('show.bs.modal', function () {
+            // Limpiar el contenido del textarea
+            motivoTextarea.value = "";
+            // Limpiar validaciones previas de "campo requerido" si las hubiera
+            motivoTextarea.setCustomValidity("");
+        });
+    }
+
+    // Limpiar el error mientras el usuario escribe
+    motivoTextarea.addEventListener("input", function() {
+        this.setCustomValidity("");
+    });
+
     if (!btnForzar || !codigoInput || !codigoCed) return;
 
-    if (btnForzar) {
+    /*if (btnForzar) {
 
         btnForzar.addEventListener("click", function () {
 
@@ -593,16 +596,78 @@ document.addEventListener("DOMContentLoaded", function () {
             modal.show();
         });
 
+    }*/
+
+    if (btnForzar) {
+        btnForzar.addEventListener("click", function () {
+            const formulario = document.getElementById("movimientoForm");
+            const selectDepto = document.getElementById("departamentoSelect");
+
+            // 1. "Apagamos" el required del departamento temporalmente para esta validación
+            const deptoEraRequerido = selectDepto.required;
+            selectDepto.required = false;
+
+            // 2. Validamos el resto de los campos (Nombre, Apellido, Cédula/Código)
+            if (!formulario.checkValidity()) {
+                formulario.reportValidity();
+
+                // Si el form es inválido, restauramos el estado original y salimos
+                selectDepto.required = deptoEraRequerido;
+                return;
+            }
+
+            // 3. Restauramos el estado original del select para los botones de Ingreso/Salida
+            selectDepto.required = deptoEraRequerido;
+
+            // 4. Llenar textos del modal
+            if (visitanteCheckbox.checked) {
+                document.getElementById("codigoTexto").textContent = codigoCed.value;
+                document.getElementById("tipoTexto").textContent = "cédula";
+            } else {
+                document.getElementById("codigoTexto").textContent = codigoInput.value;
+                document.getElementById("tipoTexto").textContent = "código";
+            }
+
+            document.getElementById("modal_codigo").value = codigoInput.value;
+
+            // 5. Abrir modal
+            const modal = new bootstrap.Modal(document.getElementById("forzarSalidaModal"));
+            modal.show();
+        });
     }
 
 
-    const btnConfirmarForzarSalida = document.querySelector(
+    /*const btnConfirmarForzarSalida = document.querySelector(
         'button[name="forzar_salida"].btn-danger'
-    );
+    );*/
 
-    const motivoTextarea = document.getElementById("motivoForzarSalida");
+    const btnConfirmarForzarSalida = document.querySelector('button[name="forzar_salida"].btn-danger');
+    const selectDepto = document.getElementById("departamentoSelect"); // Asegúrate de tener la referencia
 
     if (btnConfirmarForzarSalida && motivoTextarea) {
+        btnConfirmarForzarSalida.addEventListener("click", function (e) {
+            // 1. Validar el motivo (tu lógica actual)
+            if (!motivoTextarea.value.trim()) {
+                e.preventDefault();
+                motivoTextarea.focus();
+                motivoTextarea.setCustomValidity("Debes indicar el motivo de la salida forzada");
+                motivoTextarea.reportValidity();
+                return; // No seguimos si no hay motivo
+            } else {
+                motivoTextarea.setCustomValidity("");
+            }
+
+            // 2. LA SOLUCIÓN: Quitar el required del departamento justo antes de enviar
+            // Esto evita que el navegador bloquee el envío por falta de departamento
+            if (selectDepto) {
+                selectDepto.required = false;
+            }
+
+            // El formulario se enviará ahora sin problemas hacia views.py
+        });
+    }
+
+    /*if (btnConfirmarForzarSalida && motivoTextarea) {
         btnConfirmarForzarSalida.addEventListener("click", function (e) {
             if (!motivoTextarea.value.trim()) {
                 e.preventDefault();
@@ -613,7 +678,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 motivoTextarea.setCustomValidity("");
             }
         });
-    }
+    }*/
 
 });
 

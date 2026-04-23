@@ -50,8 +50,10 @@ def privacy(request):
 def terms(request):
     return render(request, "pages/terms.html")
 
+
 def login_view(request):
-    if user_logged_in == True:
+    # Verificación de sesión activa (corregido el nombre de la propiedad)
+    if request.user.is_authenticated:
         return redirect("modelNewApp:control")
 
     if request.method == "POST":
@@ -61,13 +63,25 @@ def login_view(request):
         user = authenticate(request, username=email, password=password)
 
         if user is not None:
+            # --- NUEVA LÓGICA DE VERIFICACIÓN ---
+            # Buscamos la persona asociada a este usuario
+            # Nota: Ajusta 'user.persona' según como se llame la relación en tu modelo
+            persona = getattr(user, 'persona', None)
+
+            if persona and not persona.activo:
+                messages.error(request, "Tu cuenta de empleado está desactivada. Contacta al administrador.")
+                return redirect("modelNewApp:home")
+            # ------------------------------------
+
             login(request, user)
-            if user.debe_cambiar_password:
+
+            # Verificamos si debe cambiar contraseña (proceso de tu mensaje anterior)
+            if getattr(user, 'debe_cambiar_password', False):
                 return redirect('modelNewApp:cambiar_password')
+
             return redirect("modelNewApp:control")
         else:
             messages.error(request, "Correo o contraseña incorrectos.")
-            # print("Correo o contraseña incorrectos")
             return redirect("modelNewApp:home")
 
     return redirect("modelNewApp:home")
@@ -169,7 +183,7 @@ def control_pie(request):
                     ya_esta_dentro = ultimo_mov and ultimo_mov.tipo_movimiento == "INGRESO"
 
                     if ya_esta_dentro and es_ingreso:
-                        contexto.update({"mensaje_error": "Ingreso ya abierto.", "data": data_retorno})
+                        contexto.update({"mensaje_error": "La persona ya ingresó.", "data": data_retorno})
                     elif not ya_esta_dentro and es_salida:
                         contexto.update({"mensaje_error": "No tiene entrada previa.", "data": data_retorno})
                     else:
@@ -186,7 +200,7 @@ def control_pie(request):
                         else:
                             reg.tipo_movimiento = "EGRESO"
                         reg.save()
-                        contexto["mensaje"] = "Éxito."
+                        contexto["mensaje"] = "Ingreso/salida efectuado correctamente."
                 else:
                     if es_ingreso:
                         depto = Departamento.objects.filter(nombre=request.POST.get("departamento")).first()
@@ -217,7 +231,7 @@ def control_pie(request):
                     ultimo_mov = RegistroAcceso.objects.filter(id_persona=empleado).last()
                     ya_esta_dentro = ultimo_mov and ultimo_mov.tipo_movimiento == "INGRESO"
                     if ya_esta_dentro and es_ingreso:
-                        contexto.update({"mensaje_error": "Empleado ya está dentro.", "data": data_retorno})
+                        contexto.update({"mensaje_error": "Empleado ya ingresó.", "data": data_retorno})
                     elif not ya_esta_dentro and es_salida:
                         contexto.update({"mensaje_error": "Empleado no tiene entrada.", "data": data_retorno})
                     else:
@@ -225,7 +239,7 @@ def control_pie(request):
                                              tipo_movimiento="INGRESO" if es_ingreso else "EGRESO")
                         if es_ingreso: reg.departamento_destino = empleado.departamento
                         reg.save()
-                        contexto["mensaje"] = "Éxito empleado."
+                        contexto["mensaje"] = "Ingreso/salida efectuado correctamente."
                 else:
                     contexto.update({"mensaje_error": "Código P00 no existe.", "data": data_retorno})
 
@@ -639,6 +653,18 @@ def empleados_agregar(request):
                     empleado.id_tipo = TipoEmpleado.objects.get(id=request.POST.get('tipo_persona'))
                     if 'foto_perfil' in request.FILES:
                         empleado.foto_perfil = request.FILES['foto_perfil']
+                    if Usuario.objects.filter(email=request.POST.get('email')).exists():
+                        messages.error(request, "Ya existe un usuario con ése email.")
+                        return render(
+                            request,
+                            "pages/empleados_agregar.html",
+                            {
+                                "error": "Ya existe un usuario con ése email.",
+                                "data": request.POST,
+                                "roles": Rol.objects.all(),
+                                "tipos": TipoEmpleado.objects.all().exclude(nombre_tipo="Visitante"),
+                                "departamentos": departamentos,
+                            })
                     empleado.save()
 
                     usuario = Usuario()
@@ -780,7 +806,7 @@ def empleados_editar(request, id):
                         "error": "Ya existe un empleado con esa cédula.",
                         "data": request.POST,
                         "roles": Rol.objects.all(),
-                        "tipos": TipoEmpleado.objects.all().exclude(id=2),
+                        "tipos": TipoEmpleado.objects.all().order_by('nombre_tipo'),
                         "persona": persona,
                         "roles_persona": roles_persona,
                         "departamentos": departamentos,
@@ -796,7 +822,7 @@ def empleados_editar(request, id):
                         "error": "Ya existe un empleado con ése código P00.",
                         "data": request.POST,
                         "roles": Rol.objects.all(),
-                        "tipos": TipoEmpleado.objects.all().exclude(id=2),
+                        "tipos": TipoEmpleado.objects.all().order_by('nombre_tipo'),
                         "persona": persona,
                         "roles_persona": roles_persona,
                         "departamentos": departamentos,
@@ -811,6 +837,20 @@ def empleados_editar(request, id):
             persona.id_tipo = TipoEmpleado.objects.get(id=request.POST.get('tipo_persona'))
             if 'foto_perfil' in request.FILES:
                 persona.foto_perfil = request.FILES['foto_perfil']
+            if Usuario.objects.filter(email=request.POST.get('email')).exists() and Usuario.objects.filter(email=request.POST.get('email')).first() != persona.empleado:
+                messages.error(request, "Ya existe un usuario con ése email.")
+                return render(
+                    request,
+                    "pages/empleados_editar.html",
+                    {
+                        "error": "Ya existe un usuario con ése email.",
+                        "data": request.POST,
+                        "roles": Rol.objects.all(),
+                        "tipos": TipoEmpleado.objects.all().order_by('nombre_tipo'),
+                        "persona": persona,
+                        "roles_persona": roles_persona,
+                        "departamentos": departamentos,
+                    })
             persona.save()
 
             if request.POST.get("administrador"):
@@ -887,22 +927,6 @@ def empleados_editar(request, id):
                             html_content
                         )
 
-                        # send_mail(
-                        #     'Acceso al sistema',
-                        #     f'''
-                        #         Hola {usuario.first_name},
-                        #
-                        #         Se ha creado una cuenta para ti.
-                        #
-                        #         Usuario: {usuario.email}
-                        #         Contraseña temporal: {password_temporal}
-                        #
-                        #         Por seguridad deberás cambiar esta contraseña al iniciar sesión.
-                        #         ''',
-                        #     'no-reply@sistema.com',
-                        #     [usuario.email],
-                        #     fail_silently=False,
-                        # )
                 else:
                     messages.error(request, "Debe seleccionar al menos un rol.")
                     roles = Rol.objects.all().order_by('nombre_rol')
