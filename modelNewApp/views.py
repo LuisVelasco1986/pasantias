@@ -2420,40 +2420,65 @@ def recuperar_contraseña(request):
 # ---------------------------------------------------------------------------------------
 
 import os
+import shutil
 from django.http import HttpResponse, FileResponse
 from django.shortcuts import render, redirect
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
+# Asumo que solo_admin es tu decorador personalizado
+from .decorators import solo_admin
 
 DB_FILE = os.path.join(settings.BASE_DIR, 'db.sqlite3')
 
 
+@login_required
+@solo_admin
 def db_panel(request):
     return render(request, 'pages/admin_db_panel.html')
 
 
+@login_required
+@solo_admin
 def db_download(request):
     if os.path.exists(DB_FILE):
+        import datetime
+        fecha = datetime.datetime.now().strftime("%Y_%m_%d")
         return FileResponse(
             open(DB_FILE, 'rb'),
             as_attachment=True,
-            filename="db_backup.sqlite3"
+            filename=f"respaldo_asistencia_{fecha}.sqlite3"
         )
     return HttpResponse("Base de datos no encontrada", status=404)
 
 
+@login_required
+@solo_admin
 def db_restore(request):
     if request.method == 'POST':
         uploaded_file = request.FILES.get('db_file')
 
         if uploaded_file and uploaded_file.name.endswith('.sqlite3'):
-            # 🔴 MUY IMPORTANTE:
-            # Cerrar conexiones antes de sobrescribir
             from django.db import connection
             connection.close()
 
-            with open(DB_FILE, 'wb+') as destination:
-                for chunk in uploaded_file.chunks():
-                    destination.write(chunk)
+            # Recomendación para la tesis: Crear un backup temporal antes de sobrescribir
+            # Esto se llama "Fail-safe mechanism"
+            backup_temp = DB_FILE + ".tmp"
+            shutil.copy2(DB_FILE, backup_temp)
+
+            try:
+                with open(DB_FILE, 'wb+') as destination:
+                    for chunk in uploaded_file.chunks():
+                        destination.write(chunk)
+
+                # Si todo sale bien, borramos el temporal
+                if os.path.exists(backup_temp):
+                    os.remove(backup_temp)
+
+            except Exception as e:
+                # Si algo falla durante la escritura, restauramos el original
+                shutil.move(backup_temp, DB_FILE)
+                return HttpResponse(f"Error crítico en la restauración: {e}", status=500)
 
             return redirect('modelNewApp:db_panel')
 
