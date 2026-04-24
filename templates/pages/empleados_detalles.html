@@ -206,6 +206,7 @@
                 <thead>
                 <tr>
                     <th>Fecha y hora</th>
+                    <th>Vehículo</th>
                     <th>Movimiento</th>
                     <th>Departamento</th>
                     <th>Nota</th>
@@ -215,6 +216,7 @@
                 {% for acceso in page_obj %}
                 <tr>
                     <td>{{ acceso.fecha_hora|date:"d/m/Y h:i A" }}</td>
+                    <td>{% if acceso.vehiculo %}{{ acceso.vehiculo.placa }}{% else %}—{% endif %}</td>
                     <td>
                         {% if acceso.tipo_movimiento == "INGRESO" %}
                         <span class="badge bg-success">

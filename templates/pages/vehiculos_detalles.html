@@ -106,14 +106,17 @@
                 <thead>
                 <tr>
                     <th>Fecha y hora</th>
+                    <th>Conductor</th>
                     <th>Movimiento</th>
                     <th>Departamento</th>
+                    <th>Nota</th>
                 </tr>
                 </thead>
                 <tbody>
                 {% for acceso in page_obj %}
                 <tr>
                     <td>{{ acceso.fecha_hora|date:"d/m/Y h:i A" }}</td>
+                    <td>{{ acceso.id_persona.nombres }} {{ acceso.id_persona.apellidos }}</td>
                     <td>
                         {% if acceso.tipo_movimiento == "INGRESO" %}
                         <span class="badge bg-success">
@@ -128,6 +131,8 @@
                         {% endif %}
                     </td>
                     <td>{% if acceso.departamento_destino %}{{ acceso.departamento_destino.nombre }}{% else %}—{% endif %}
+                    </td>
+                    <td>{% if acceso.observacion %}{{ acceso.observacion }}{% else %}—{% endif %}
                     </td>
                 </tr>
                 {% empty %}

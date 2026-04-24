@@ -200,7 +200,7 @@ def control_pie(request):
                         else:
                             reg.tipo_movimiento = "EGRESO"
                         reg.save()
-                        contexto["mensaje"] = "Ingreso/salida efectuado correctamente."
+                        contexto["mensaje"] = "Ingreso/salida efectuada correctamente."
                 else:
                     if es_ingreso:
                         depto = Departamento.objects.filter(nombre=request.POST.get("departamento")).first()
@@ -239,7 +239,7 @@ def control_pie(request):
                                              tipo_movimiento="INGRESO" if es_ingreso else "EGRESO")
                         if es_ingreso: reg.departamento_destino = empleado.departamento
                         reg.save()
-                        contexto["mensaje"] = "Ingreso/salida efectuado correctamente."
+                        contexto["mensaje"] = "Ingreso/salida efectuada correctamente."
                 else:
                     contexto.update({"mensaje_error": "Código P00 no existe.", "data": data_retorno})
 
@@ -353,7 +353,10 @@ def control_vehiculo(request):
                 # Lógica de Movimientos
                 if "salida" in request.POST or "forzar_salida" in request.POST:
                     if not persona_dentro or not vehiculo_dentro:
-                        context["mensaje_error"] = "No se puede registrar salida: La persona o el vehículo no están dentro."
+                        if not persona_dentro:
+                            context["mensaje_error"] = "No se puede registrar salida: La persona no se encuentra dentro."
+                        if not vehiculo_dentro:
+                            context["mensaje_error"] = "No se puede registrar salida: El vehículo no se encuentra dentro."
                         context["data"] = data_retorno
                         raise Exception("Rollback: Estado inválido para salida")
 
@@ -362,11 +365,19 @@ def control_vehiculo(request):
                         fecha_hora=timezone.now(),
                         observacion=request.POST.get("motivo_forzar_salida") if "forzar_salida" in request.POST else ""
                     )
+                    if es_visitante:
+                        visitante = Persona.objects.filter(cedula=request.POST.get("cedula_visitante")).first()
+                        visitante.nombres = request.POST.get("nombre_visitante")
+                        visitante.apellidos = request.POST.get("apellido_visitante")
+                        visitante.save()
                     context["mensaje"] = "Salida registrada correctamente."
 
                 elif "ingreso" in request.POST:
                     if persona_dentro or vehiculo_dentro:
-                        context["mensaje_error"] = "No se puede registrar ingreso: Ya se encuentran dentro."
+                        if persona_dentro:
+                            context["mensaje_error"] = "No se puede registrar ingreso: La persona se encuentra dentro."
+                        if vehiculo_dentro:
+                            context["mensaje_error"] = "No se puede registrar ingreso: El vehículo se encuentra dentro."
                         context["data"] = data_retorno
                         raise Exception("Rollback: Ya están dentro")
 
@@ -378,6 +389,10 @@ def control_vehiculo(request):
                             context["data"] = data_retorno
                             raise Exception("Rollback: Falta departamento")
                         depto = Departamento.objects.filter(nombre=depto_nombre).first()
+                        visitante = Persona.objects.filter(cedula=request.POST.get("cedula_visitante")).first()
+                        visitante.nombres = request.POST.get("nombre_visitante")
+                        visitante.apellidos = request.POST.get("apellido_visitante")
+                        visitante.save()
                     else:
                         depto = persona.departamento
 
@@ -385,6 +400,7 @@ def control_vehiculo(request):
                         id_persona=persona, vehiculo=vehiculo, tipo_movimiento="INGRESO",
                         fecha_hora=timezone.now(), departamento_destino=depto
                     )
+
                     context["mensaje"] = "Entrada registrada correctamente."
 
         except Exception as e:
@@ -511,7 +527,7 @@ def dashboard(request):
 
     vehiculos_dentro = RegistroAcceso.objects.filter(
         id__in=vehiculos_dentro_ids
-    ).order_by("fecha_hora")
+    ).order_by("-fecha_hora")
 
     # ─────────────────────────────────────────────
     # Total personas
