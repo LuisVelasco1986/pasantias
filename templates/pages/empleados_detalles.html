@@ -14,6 +14,7 @@
         </div>
     </div>
 
+    {% if es_admin or user.is_superuser %}
     <div class="dropdown">
         <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
             Acciones
@@ -41,7 +42,7 @@
             </li>
         </ul>
     </div>
-
+    {% endif %}
 
 </div>
 

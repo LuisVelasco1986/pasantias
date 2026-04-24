@@ -10,7 +10,7 @@
     {% if user.is_authenticated %}
     <div class="dropdown profileMenu">
         <div class="nav-right dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-            {{ user.email }}  <!-- o user.get_full_name si lo defines -->
+            {{ user.persona.nombres }} {{ user.persona.apellidos }}  <!-- o user.get_full_name si lo defines -->
             <div class="thumbnail-content">
                 {% if user.persona.foto_perfil %}
                     <div class="">
