@@ -2483,3 +2483,81 @@ def db_restore(request):
             return redirect('modelNewApp:db_panel')
 
     return HttpResponse("Método no permitido", status=405)
+
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from django.urls import reverse_lazy
+from django.contrib.auth.mixins import UserPassesTestMixin
+from .forms import DepartamentoForm
+
+# Mixin para asegurar que solo los administradores accedan
+class AdminRequiredMixin(UserPassesTestMixin):
+    def test_func(self):
+        # Verifica si el usuario tiene el rol de Administrador o es Superusuario
+        es_admin = self.request.user.roles.filter(nombre_rol='Administrador').exists()
+        return es_admin or self.request.user.is_superuser
+
+# Listar Departamentos
+class DepartamentoListView(AdminRequiredMixin, ListView):
+    model = Departamento
+    template_name = "pages/config/departamentos_list.html"
+    context_object_name = "departamentos"
+
+
+class DepartamentoDeleteView(AdminRequiredMixin, DeleteView):
+    model = Departamento
+    success_url = reverse_lazy('modelNewApp:departamentos_list')
+
+    # Sobrescribimos para que no pida un template de confirmación,
+    # ya que el modal hace esa función.
+    def get(self, request, *args, **kwargs):
+        return self.post(request, *args, **kwargs)
+
+# Crear Departamento
+class DepartamentoCreateView(AdminRequiredMixin, CreateView):
+    model = Departamento
+    form_class = DepartamentoForm
+    template_name = "pages/config/departamento_form.html"
+    success_url = reverse_lazy('modelNewApp:departamentos_list')
+
+# Editar Departamento
+class DepartamentoUpdateView(AdminRequiredMixin, UpdateView):
+    model = Departamento
+    form_class = DepartamentoForm
+    template_name = "pages/config/departamento_form.html"
+    success_url = reverse_lazy('modelNewApp:departamentos_list')
+
+
+from .models import TipoEmpleado
+from .forms import TipoEmpleadoForm
+
+
+# Listar Tipos de Persona
+class TipoEmpleadoListView(AdminRequiredMixin, ListView):
+    model = TipoEmpleado
+    template_name = "pages/config/tipos_list.html"
+    context_object_name = "tipos"
+
+
+# Crear Tipo de Persona
+class TipoEmpleadoCreateView(AdminRequiredMixin, CreateView):
+    model = TipoEmpleado
+    form_class = TipoEmpleadoForm
+    template_name = "pages/config/tipo_form.html"
+    success_url = reverse_lazy('modelNewApp:tipos_list')
+
+
+# Editar Tipo de Persona
+class TipoEmpleadoUpdateView(AdminRequiredMixin, UpdateView):
+    model = TipoEmpleado
+    form_class = TipoEmpleadoForm
+    template_name = "pages/config/tipo_form.html"
+    success_url = reverse_lazy('modelNewApp:tipos_list')
+
+
+# Eliminar Tipo de Persona (vía Modal)
+class TipoEmpleadoDeleteView(AdminRequiredMixin, DeleteView):
+    model = TipoEmpleado
+    success_url = reverse_lazy('modelNewApp:tipos_list')
+
+    def get(self, request, *args, **kwargs):
+        return self.post(request, *args, **kwargs)

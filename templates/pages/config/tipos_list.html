@@ -1,0 +1,82 @@
+{% extends "pages/dashboard.html" %}
+
+{% block dashboard_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="sectionTitle">Tipos de Persona</h2>
+    <a href="{% url 'modelNewApp:tipo_create' %}" class="btn btn-primary">+ Nuevo Tipo</a>
+</div>
+
+<div class="">
+    <div class="card-body">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Descripción</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tipo in tipos %}
+                <tr>
+                    <td>{{ tipo.nombre_tipo }}</td>
+                    <td>{{ tipo.descripcion|default:"Sin descripción" }}</td>
+                    <td>
+                        <a href="{% url 'modelNewApp:tipo_update' tipo.pk %}" class="btn btn-sm btn-outline-primary">Editar</a>
+<!--                        <button type="button" -->
+<!--                                class="btn btn-sm btn-outline-danger" -->
+<!--                                data-bs-toggle="modal" -->
+<!--                                data-bs-target="#deleteTipoModal" -->
+<!--                                data-id="{{ tipo.pk }}" -->
+<!--                                data-nombre="{{ tipo.nombre_tipo }}">-->
+<!--                            Eliminar-->
+<!--                        </button>-->
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="text-center">No hay tipos registrados.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteTipoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Eliminar Tipo de Persona</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                ¿Estás seguro de que deseas eliminar a <strong><span id="tipoNombre"></span></strong>?
+                <p class="text-muted small mt-2">Nota: No podrás eliminar tipos que ya estén asignados a personas registradas.</p>
+            </div>
+            <div class="modal-footer">
+                <form id="deleteTipoForm" method="post" action="">
+                    {% csrf_token %}
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const deleteTipoModal = document.getElementById('deleteTipoModal');
+    if (deleteTipoModal) {
+        deleteTipoModal.addEventListener('show.bs.modal', event => {
+            const button = event.relatedTarget;
+            const id = button.getAttribute('data-id');
+            const nombre = button.getAttribute('data-nombre');
+            
+            deleteTipoModal.querySelector('#tipoNombre').textContent = nombre;
+            let url = "{% url 'modelNewApp:tipo_delete' 0 %}".replace('0', id);
+            deleteTipoModal.querySelector('#deleteTipoForm').action = url;
+        });
+    }
+</script>
+{% endblock %}

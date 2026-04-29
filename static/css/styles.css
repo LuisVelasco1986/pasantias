@@ -101,7 +101,7 @@ body, html {
     width: 20px;
 }
 
-.nav-link:hover {
+.nav-item:not(.collapse *) > .nav-link:hover {
     background: linear-gradient(to bottom, blue, #0032A0);
 }
 /*.nav-link:hover {
@@ -128,7 +128,7 @@ body, html {
     width: 100%;            /* ocupa todo el ancho del sidebar */
 }
 
-.sidebar a.nav-link:hover {
+a.nav-item:not(.collapse *) > a.nav-link:hover {
     background: linear-gradient(to bottom, blue, #0032A0);
     text-decoration: none;
 }
@@ -143,8 +143,19 @@ body, html {
     color: #ffffff;
     transition: color 0.2s ease-in-out;
 }
+/* Cuando pasamos el mouse por encima */
 .nav-item:hover .dashboardIcon {
+    filter: brightness(0) invert(1) !important;
+}
+
+/* Cuando la opción está seleccionada (clase active de Django) */
+.nav-item.active .dashboardIcon {
     filter: brightness(0) invert(1);
+}
+
+/* Opcional: para que la transición de color sea suave */
+.dashboardIcon {
+    transition: filter 0.2s ease;
 }
 
 .active .dashboardIcon {

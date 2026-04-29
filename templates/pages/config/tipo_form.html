@@ -1,0 +1,27 @@
+{% extends "pages/dashboard.html" %}
+
+{% block dashboard_content %}
+<div class="mb-4">
+    <h2 class="sectionTitle">{% if object %}Editar{% else %}Nuevo{% endif %} Tipo de Persona</h2>
+</div>
+
+<div class="" style="max-width: 800px;">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label">Nombre del Tipo</label>
+                {{ form.nombre_tipo }}
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Descripción</label>
+                {{ form.descripcion }}
+            </div>
+            <div class="mt-4">
+                <button type="submit" class="btn btn-success">Guardar</button>
+                <a href="{% url 'modelNewApp:tipos_list' %}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

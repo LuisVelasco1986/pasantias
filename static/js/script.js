@@ -550,9 +550,12 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // Limpiar el error mientras el usuario escribe
-    motivoTextarea.addEventListener("input", function() {
+    if (motivoTextarea) {
+        motivoTextarea.addEventListener("input", function() {
         this.setCustomValidity("");
-    });
+        });
+    }
+
 
     if (!btnForzar || !codigoInput || !codigoCed) return;
 

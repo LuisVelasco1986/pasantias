@@ -39,7 +39,7 @@ urlpatterns = [
     path("reportes/pdf/", exportar_pdf, name="exportar_pdf"),
     path('db-download/', db_download, name='db_download'),
     path('db-restore/', db_restore, name='db_restore'),
-    path('db-panel/', db_panel, name='db_panel'),
+    path('dashboard/config/db-panel/', db_panel, name='db_panel'),
     path('privacy/', privacy, name='privacy'),
     path('terms/', terms, name='terms'),
     # Cambio de contraseña
@@ -51,4 +51,12 @@ urlpatterns = [
     path('perfil/password-exito/', auth_views.PasswordChangeDoneView.as_view(
         template_name='pages/password_exito.html'
     ), name='password_change_done'),
+    path('dashboard/config/departamentos/', DepartamentoListView.as_view(), name='departamentos_list'),
+    path('dashboard/config/departamentos/nuevo/', DepartamentoCreateView.as_view(), name='departamento_create'),
+    path('dashboard/config/departamentos/editar/<int:pk>/', DepartamentoUpdateView.as_view(), name='departamento_update'),
+    path('dashboard/config/departamentos/eliminar/<int:pk>/', DepartamentoDeleteView.as_view(), name='departamento_delete'),
+    path('dashboard/config/tipos/', TipoEmpleadoListView.as_view(), name='tipos_list'),
+    path('dashboard/config/tipos/nuevo/', TipoEmpleadoCreateView.as_view(), name='tipo_create'),
+    path('dashboard/config/tipos/editar/<int:pk>/', TipoEmpleadoUpdateView.as_view(), name='tipo_update'),
+    path('dashboard/config/tipos/eliminar/<int:pk>/', TipoEmpleadoDeleteView.as_view(), name='tipo_delete'),
 ]
