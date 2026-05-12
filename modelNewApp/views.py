@@ -1420,6 +1420,8 @@ def estadisticos(request):
         .order_by('-cantidad')
     )
 
+    print(list(vehiculos_por_periodo))
+
     context = {
         "tipos": tipos,
         "total_ingresos": total_ingresos,
